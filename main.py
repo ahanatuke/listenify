@@ -104,6 +104,14 @@ def createTables(connection, cursor):
                             foreign key (sid) references songs
                         );'''
 
+    cursor.execute(create_users)
+    cursor.execute(create_songs)
+    cursor.execute(create_sessions)
+    cursor.execute(create_listen)
+    cursor.execute(create_playlists)
+    cursor.execute(create_plinclude)
+    cursor.execute(create_artists)
+    cursor.execute(create_perform)
 
 
 def init(connection, cursor):
