@@ -1,5 +1,7 @@
 import sqlite3
 
+path = './291_proj'
+
 def connect(path):
     connection = sqlite3.connect(path)
     cursor = connection.cursor()
@@ -7,7 +9,7 @@ def connect(path):
     connection.commit()
     return connection, cursor
 
-def dropTables(connection, cursor):
+def dropTables(cursor):
     drop_perform = "drop table if exists perform;"
     drop_artists = "drop table if exists artists;"
     drop_plinclude = "drop table if exists plinclude;"
@@ -28,7 +30,7 @@ def dropTables(connection, cursor):
 
 
 
-def createTables(connection, cursor):
+def createTables(cursor):
     create_users = '''
                         create table users (
                             uid		char(4),
@@ -121,5 +123,7 @@ def introLoop():
     return
 
 def main():
-    #ToDo figure out path
-    connect()
+    global path
+    connection, cursor = connect(path)
+
+
