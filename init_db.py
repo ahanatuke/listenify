@@ -873,6 +873,6 @@ def init_main():
     populate_tables(connection)
 
     connection.commit()
-
+    connection.close()
 
 init_main()

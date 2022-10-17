@@ -126,4 +126,6 @@ def main():
     global path
     connection, cursor = connect(path)
 
+    connection.close()
+
 
