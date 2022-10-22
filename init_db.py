@@ -53,7 +53,7 @@ def populate_users(connection):
              ('u41', 'Shamima Gonzales', 'fantasy'),
              ('u42', 'Mike Smith', 'shop')]
 
-    connection.execute_many("""
+    connection.executemany("""
                 insert into users values (?,?,?)""", users)
 
 
@@ -107,11 +107,25 @@ def populate_songs(connection):
              (47, 'Wannabe', 172),
              (48, 'Shape of You', 233), ]
 
-    connection.execute_many("""insert into songs values (?,?,?)""", songs)
+    connection.executemany("""insert into songs values (?,?,?)""", songs)
 
 
 def populate_sessions(connection):
     sessions = [
+        ('u10', 1, '2022-09-27', '2022-09-28'),
+        ('u20', 1, '2022-09-25', '2022-09-27'),
+        ('u3', 2, '2022-09-24', '2022-09-25'),
+        ('u36', 3, '2022-09-24', '2022-09-25'),
+        ('u1', 4, '2022-09-23', '2022-09-27'),
+        ('u32', 5, '2022-09-22', '2022-09-24'),
+        ('u23', 5, '2022-09-22', '2022-09-23'),
+        ('u39', 6, '2022-09-16', '2022-09-18'),
+        ('u32', 6, '2022-09-12', '2022-09-21'),
+        ('u10', 7, '2022-09-13', '2022-09-16'),
+        ('u22', 8, '2022-09-12', '2022-09-14'),
+        ('u23', 9, '2022-09-08', '2022-09-15'),
+        ('u15', 9, '2022-09-06', '2022-09-09'),
+        ('u17', 10, '2022-09-02', '2022-09-04'),
         ('u3', 10, '2022-08-25', '2022-08-28'),
         ('u7', 10, '2022-08-20', '2022-08-23'),
         ('u41', 11, '2022-08-22', '2022-08-26'),
@@ -183,7 +197,7 @@ def populate_sessions(connection):
         ('u5', 40, '2021-01-01', '2021-01-06')
     ]
 
-    connection.execute_many("""insert into sessions values (?,?,?,?)""", sessions)
+    connection.executemany("""insert into sessions values (?,?,?,?)""", sessions)
 
 
 def populate_listens(connection):
@@ -474,7 +488,7 @@ def populate_listens(connection):
         ('u5', 40, 6, 23.35)
     ]
 
-    connection.execute_many("""insert into listen values (?,?,?,?)""", listens)
+    connection.executemany("""insert into listen values (?,?,?,?)""", listens)
 
 
 def populate_playlists(connection):
@@ -512,7 +526,7 @@ def populate_playlists(connection):
         (31, 'Cool Playlist', 'u18')
     ]
 
-    connection.execute_many("""insert into playlists values (?,?,?)""", playlists)
+    connection.executemany("""insert into playlists values (?,?,?)""", playlists)
 
 
 def populate_plinclude(connection):
@@ -744,7 +758,7 @@ def populate_plinclude(connection):
         (31, 46, 10)
     ]
 
-    connection.execute_many("""insert into plinclude (?,?,?)""", plinclude)
+    connection.executemany("""insert into plinclude values (?,?,?)""", plinclude)
 
 
 def populate_artists(connection):
@@ -790,7 +804,7 @@ def populate_artists(connection):
         ('a39', 'Ed Sheeran', 'England', 'confusion')
     ]
 
-    connection.execute_many("""insert into artists values (?,?,?,?)""", artists)
+    connection.executemany("""insert into artists values (?,?,?,?)""", artists)
 
 
 def populate_perform(connection):
@@ -851,7 +865,7 @@ def populate_perform(connection):
         ('a39', 48)
     ]
 
-    connection.execute_many("""insert into perform values (?,?)""", performs)
+    connection.executemany("""insert into perform values (?,?)""", performs)
 
 
 def populate_tables(connection):
@@ -859,6 +873,7 @@ def populate_tables(connection):
     populate_songs(connection)
     populate_sessions(connection)
     populate_listens(connection)
+    populate_playlists(connection)
     populate_plinclude(connection)
     populate_artists(connection)
     populate_perform(connection)
@@ -868,7 +883,7 @@ def init_main():
     connection, cursor = main.connect(main.path)
 
     main.dropTables(cursor)
-    main.create_tables(cursor)
+    main.createTables(cursor)
 
     populate_tables(connection)
 
