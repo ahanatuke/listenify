@@ -6,12 +6,14 @@ import sqlite3
 
 path = './291_proj'
 
+
 def connect(path):
     connection = sqlite3.connect(path)
     cursor = connection.cursor()
     cursor.execute(' PRAGMA foreign_keys=ON; ')
     connection.commit()
     return connection, cursor
+
 
 def dropTables(cursor):
     drop_perform = "drop table if exists perform;"
@@ -31,7 +33,6 @@ def dropTables(cursor):
     cursor.execute(drop_sessions)
     cursor.execute(drop_songs)
     cursor.execute(drop_users)
-
 
 
 def createTables(cursor):
@@ -120,11 +121,14 @@ def createTables(cursor):
     cursor.execute(create_perform)
 
 
+
+
 def introLoop():
     return
+
 
 def main():
     global path
     connection, cursor = connect(path)
 
-
+    connection.close()
