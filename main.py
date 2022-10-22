@@ -1,3 +1,7 @@
+''' NOTE: this file will only run if init_db.py has been run
+    at least once. otherwise, tables are never created.
+    This must be fixed before handing in. '''
+
 import sqlite3
 
 path = './291_proj'
@@ -117,8 +121,6 @@ def createTables(cursor):
     cursor.execute(create_perform)
 
 
-def init(connection, cursor):
-    return
 
 
 def introLoop():
