@@ -2,7 +2,9 @@
     at least once. otherwise, tables are never created.
     This must be fixed before handing in. '''
 
+from re import L
 import sqlite3
+import getpass
 
 path = './291_proj'
 
@@ -122,13 +124,44 @@ def createTables(cursor):
 
 
 
+def register():
+    connection, cursor = connect(path)
+    q = '''SELECT *
+    FROM users as u
+    '''
+    cursor.execute(q)
+    usersAmount = cursor.fetchone()   
+    connection.commit()
 
+    
+    usersAmount += 1
+    print("Suggested user u" , len(usersAmount), ": ")
+    inputU = input("Please enter a user id: ")
+    inputN = input("Please enter your name: ")
+    inputP = getpass.getpass(prompt = "Enter a password: ")
+    return 
+
+
+def login():
+    return 
 def introLoop():
     return
 
 
 def main():
+
+    #link database using URL 
     global path
     connection, cursor = connect(path)
-
+    register()
+    logReg = input("Would you like to login or register [L/R]? ")
+    while logReg != "l" or logReg != "r":
+        print("Incorrect input. Please try again.")
+        logReg = input("Would you like to login or register [L/R]? ")
+        print(logReg)
+    if logReg == 'r':
+        register()
+    else: 
+        login()
     connection.close()
+main()
