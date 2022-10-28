@@ -5,6 +5,7 @@
 from re import L
 import sqlite3
 import getpass
+from tkinter import FALSE
 
 path = './291_proj'
 
@@ -123,6 +124,16 @@ def createTables(cursor):
     cursor.execute(create_perform)
 
 
+def regInputs():
+    inputU = input("Please enter a user id: ")
+    inputN = input("Please enter your name: ")
+    inputP = getpass.getpass(prompt = "Enter a password: ")
+    inputP2 =  getpass.getpass(prompt = "Re-enter password: ")
+    while inputP != inputP2: 
+        print("Passwords don't match, please try again")
+        inputP2 =  getpass.getpass(prompt = "Re-enter password: ")
+    
+    return inputU, inputN, inputP, inputP2
 
 def register():
     connection, cursor = connect(path)
@@ -136,10 +147,30 @@ def register():
     
     usersAmount += 1
     print("Suggested user u" , len(usersAmount), ": ")
-    inputU = input("Please enter a user id: ")
-    inputN = input("Please enter your name: ")
-    inputP = getpass.getpass(prompt = "Enter a password: ")
-    return 
+    inputU, inputN, inputP, inputP2 = regInputs()
+   
+    reEnter = input("Keep the following [Y/N]?: \n"+inputU+"\n"+inputN+" ")
+    check = FALSE
+    
+    while check == FALSE:
+
+        if reEnter.lower() == 'n':
+            inputU, inputN, inputP, inputP2 = regInputs()
+            break
+        elif reEnter.lower() == 'y':
+            q = '''INSERT INTO users 
+            VALUES ((?), (?), (?))'''
+            cursor.execute(q, (inputU, inputN, inputP))
+            connection.commit()
+            break
+        else:
+            print("Invalid input. Please try again")
+            reEnter = input("Keep the following [Y/N]?: \n"+inputU+"\n"+inputN+" ")
+
+    return  
+
+ 
+
 
 
 def login():
