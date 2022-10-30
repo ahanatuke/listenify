@@ -4,10 +4,8 @@
 
 #todo add success checks to both login and register. should only continue if successful
 
-from re import L
 import sqlite3
 import getpass
-from tkinter import FALSE
 
 path = './291_proj'
 
@@ -22,10 +20,10 @@ def connect(path):
 
 
 def introLoop():
-    print("Press 'L' to login to an existing account.\nPress 'R' to register a new account.\n")
+    print("Press 'L' to login to an existing account.\nPress 'R' to register a new account.\nPress 'Q' to quit.")
     userInput = input("> ")
     userInput = userInput.lower().strip()
-    while userInput != "r" and userInput != "l":
+    while userInput != "r" and userInput != "l" and userInput != "q":
         print("Invalid input. Please try again.")
         userInput = input("> ")
         userInput = userInput.lower().strip()
@@ -86,6 +84,8 @@ def login(cursor):
 
     success = False
     valid = True
+    uid = ""
+    pwd = ""
     while ~success and valid:
         uidSuccess = False
         print("Please enter your User ID, or press enter to exit:")
@@ -94,11 +94,20 @@ def login(cursor):
             if uid == "":
                 valid = False
                 break
-            cursor.execute("SELECT * FROM USERS WHERE uid = ?", uid)
-            if cursor.fetchone() is not None:
+            cursor.execute("SELECT * FROM USERS WHERE uid=?", (uid,))
+            if cursor.fetchone() != None:
                 uidSuccess = True
             else:
                 print("No user with that username. Please try again, or press enter to exit.")
+
+        pwdSuccess = False
+        print("Please enter the password for user %s, or press enter to change user" % uid)
+        while ~pwdSuccess and valid:
+            pwd = getpass("> ")
+            if pwd == "":
+                uidSuccess = False
+                break
+
 
 
     return valid, uid
@@ -114,17 +123,21 @@ def main():
     quit = False
     while ~quit:
         initialDone = False
-        while ~initialDone:
+        while ~initialDone and ~quit:
             logReg = introLoop()
             if logReg == 'r':
                 register()
                 initialDone = True
-            else:
+            elif logReg == 'l':
                 login(cursor)
                 initialDone = True
+            elif logReg == 'q':
+                quit = True
+                print("Thank you.")
+                break
 
         sessionDone = False
-        while ~sessionDone:
+        while ~sessionDone and ~quit:
             #todo uh oh this is the hard part
             break
 
