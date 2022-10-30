@@ -2,6 +2,8 @@
     at least once. otherwise, tables are never created.
     This must be fixed before handing in. '''
 
+#todo add success checks to both login and register. should only continue if successful
+
 from re import L
 import sqlite3
 import getpass
@@ -20,7 +22,15 @@ def connect(path):
 
 
 def introLoop():
-    return
+    print("Press 'L' to login to an existing account.\nPress 'R' to register a new account.\n")
+    userInput = input("> ")
+    userInput = userInput.lower().strip()
+    while userInput != "r" and userInput != "l":
+        print("Invalid input. Please try again.")
+        userInput = input("> ")
+        userInput = userInput.lower().strip()
+
+    return userInput
 
 
 def regInputs():
@@ -41,11 +51,11 @@ def register():
     FROM users as u
     '''
     cursor.execute(q)
-    usersAmount = cursor.fetchone()
+    usersAmount = len(cursor.fetchall())
     connection.commit()
 
     usersAmount += 1
-    print("Suggested user u", len(usersAmount), ": ")
+    print("Suggested user u", usersAmount, ": ")
     inputU, inputN, inputP, inputP2 = regInputs()
 
     reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " ")
@@ -66,24 +76,58 @@ def register():
             print("Invalid input. Please try again")
             reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " ")
 
-    return
+    return inputU
 
+
+def login(cursor):
+    #todo someone look at this and tell me if its okay lmao
+    '''Login: nested loop unfortunately ready for this to run in O(n^2)?
+            main loop to authenticate, then two loops inside that wait for valid info'''
+
+    success = False
+    valid = True
+    while ~success and valid:
+        uidSuccess = False
+        print("Please enter your User ID, or press enter to exit:")
+        while ~uidSuccess and valid:
+            uid = input("> ")
+            if uid == "":
+                valid = False
+                break
+            cursor.execute("SELECT * FROM USERS WHERE uid = ?", uid)
+            if cursor.fetchone() is not None:
+                uidSuccess = True
+            else:
+                print("No user with that username. Please try again, or press enter to exit.")
+
+
+    return valid, uid
 
 
 def main():
-
-    #link database using URL 
+    print("291 Mini-Project 1\n")
+    # todo please check i spelled your names right lmao
+    print("By Anya Hanatuke, Alinn Martinez, and Ayaan Jutt\n")
+    #todo link database using URL
     global path
     connection, cursor = connect(path)
-    register()
-    logReg = input("Would you like to login or register [L/R]? ")
-    while logReg != "l" or logReg != "r":
-        print("Incorrect input. Please try again.")
-        logReg = input("Would you like to login or register [L/R]? ")
-        print(logReg)
-    if logReg == 'r':
-        register()
-    else: 
-        login()
+    quit = False
+    while ~quit:
+        initialDone = False
+        while ~initialDone:
+            logReg = introLoop()
+            if logReg == 'r':
+                register()
+                initialDone = True
+            else:
+                login(cursor)
+                initialDone = True
+
+        sessionDone = False
+        while ~sessionDone:
+            #todo uh oh this is the hard part
+            break
+
+
     connection.close()
 main()
