@@ -57,9 +57,9 @@ def register():
     inputU, inputN, inputP, inputP2 = regInputs()
 
     reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " ")
-    check = FALSE
+    check = False
 
-    while check == FALSE:
+    while check == False:
 
         if reEnter.lower() == 'n':
             inputU, inputN, inputP, inputP2 = regInputs()
@@ -97,20 +97,33 @@ def login(cursor):
             cursor.execute("SELECT * FROM USERS WHERE uid=?", (uid,))
             if cursor.fetchone() != None:
                 uidSuccess = True
+                break
             else:
                 print("No user with that username. Please try again, or press enter to exit.")
 
         pwdSuccess = False
         print("Please enter the password for user %s, or press enter to change user" % uid)
         while ~pwdSuccess and valid:
-            pwd = getpass("> ")
+            pwd = getpass.getpass("> ")
             if pwd == "":
                 uidSuccess = False
                 break
-
-
+            cursor.execute("SELECT * FROM USERS WHERE uid=? AND pwd=?", (uid,pwd))
+            if cursor.fetchone() != None:
+                cursor.execute("SELECT name FROM USERS WHERE uid=? AND pwd=?", (uid,pwd))
+                name = cursor.fetchone()
+                print("Login Successful. Welcome " + name)
+                return valid, uid
+            else:
+                print("Incorrect password. Please try again, or press enter to exit")
 
     return valid, uid
+
+
+
+
+
+
 
 
 def main():
@@ -120,10 +133,10 @@ def main():
     #todo link database using URL
     global path
     connection, cursor = connect(path)
-    quit = False
-    while ~quit:
+    quitProgram = False
+    while quitProgram == False:
         initialDone = False
-        while ~initialDone and ~quit:
+        while initialDone == False and quitProgram == False:
             logReg = introLoop()
             if logReg == 'r':
                 register()
@@ -132,12 +145,12 @@ def main():
                 login(cursor)
                 initialDone = True
             elif logReg == 'q':
-                quit = True
+                quitProgram = True
                 print("Thank you.")
                 break
 
         sessionDone = False
-        while ~sessionDone and ~quit:
+        while ~sessionDone and ~quitProgram:
             #todo uh oh this is the hard part
             break
 
