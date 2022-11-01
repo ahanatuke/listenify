@@ -2,10 +2,10 @@
     at least once. otherwise, tables are never created.
     This must be fixed before handing in. '''
 
-from re import L
+#todo add success checks to both login and register. should only continue if successful
+
 import sqlite3
 import getpass
-from tkinter import FALSE
 
 path = './291_proj'
 
@@ -18,122 +18,30 @@ def connect(path):
     return connection, cursor
 
 
-def dropTables(cursor):
-    drop_perform = "drop table if exists perform;"
-    drop_artists = "drop table if exists artists;"
-    drop_plinclude = "drop table if exists plinclude;"
-    drop_playlists = "drop table if exists playlists;"
-    drop_listen = "drop table if exists listen;"
-    drop_sessions = "drop table if exists sessions;"
-    drop_songs = "drop table if exists songs;"
-    drop_users = "drop table if exists users;"
 
-    cursor.execute(drop_perform)
-    cursor.execute(drop_artists)
-    cursor.execute(drop_plinclude)
-    cursor.execute(drop_playlists)
-    cursor.execute(drop_listen)
-    cursor.execute(drop_sessions)
-    cursor.execute(drop_songs)
-    cursor.execute(drop_users)
+def introLoop():
+    print("Press 'L' to login to an existing account.\nPress 'R' to register a new account.\nPress 'Q' to quit.")
+    userInput = input("> ")
+    userInput = userInput.lower().strip()
+    while userInput != "r" and userInput != "l" and userInput != "q":
+        print("Invalid input. Please try again.")
+        userInput = input("> ")
+        userInput = userInput.lower().strip()
 
-
-def createTables(cursor):
-    create_users = '''
-                        create table users (
-                            uid		char(4),
-                            name		text,
-                            pwd		text,
-                            primary key (uid)
-                        );'''
-
-    create_songs = '''
-                        create table songs (
-                            sid		int,
-                            title		text,
-                            duration	int,
-                            primary key (sid)
-                        );'''
-
-    create_sessions = '''
-                        create table sessions (
-                            uid		char(4),
-                            sno		int,
-                            start 	date,
-                            end 		date,
-                            primary key (uid,sno),
-                            foreign key (uid) references users
-                                    on delete cascade
-                        );'''
-
-    create_listen = '''
-                        create table listen (
-                            uid		char(4),
-                            sno		int,
-                            sid		int,
-                            cnt		real,
-                            primary key (uid,sno,sid),
-                            foreign key (uid,sno) references sessions,
-                            foreign key (sid) references songs
-                        );'''
-
-    create_playlists = '''
-                        create table playlists (
-                            pid		int,
-                            title		text,
-                            uid		char(4),
-                            primary key (pid),
-                            foreign key (uid) references users
-                        );'''
-
-    create_plinclude = '''
-                        create table plinclude (
-                            pid		int,
-                            sid		int,
-                            sorder	int,
-                            primary key (pid,sid),
-                            foreign key (pid) references playlists,
-                            foreign key (sid) references songs
-                        );'''
-
-    create_artists = '''
-                        create table artists (
-                            aid		char(4),
-                            name		text,
-                            nationality	text,
-                            pwd		text,
-                            primary key (aid)
-                        );'''
-
-    create_perform = '''
-                        create table perform (
-                            aid		char(4),
-                            sid		int,
-                            primary key (aid,sid),
-                            foreign key (aid) references artists,
-                            foreign key (sid) references songs
-                        );'''
-
-    cursor.execute(create_users)
-    cursor.execute(create_songs)
-    cursor.execute(create_sessions)
-    cursor.execute(create_listen)
-    cursor.execute(create_playlists)
-    cursor.execute(create_plinclude)
-    cursor.execute(create_artists)
-    cursor.execute(create_perform)
+    return userInput
 
 
 def regInputs():
     inputU = input("Please enter a user id: ")
     inputN = input("Please enter your name: ")
-    inputP = getpass.getpass(prompt = "Enter a password: ")
-    inputP2 =  getpass.getpass(prompt = "Re-enter password: ")
-    while inputP != inputP2: 
+    inputP = getpass.getpass(prompt="Enter a password: ")
+    inputP2 = getpass.getpass(prompt="Re-enter password: ")
+    while inputP != inputP2:
         print("Passwords don't match, please try again")
-        inputP2 =  getpass.getpass(prompt = "Re-enter password: ")
-    
+        inputP2 = getpass.getpass(prompt="Re-enter password: ")
+
     return inputU, inputN, inputP, inputP2
+
 
 def register():
     connection, cursor = connect(path)
@@ -141,16 +49,18 @@ def register():
     FROM users as u
     '''
     cursor.execute(q)
-    usersAmount = len(cursor.fetchall()) + 1   
-    connection.commit()
 
-    print("Suggested user u" , usersAmount, ": ")
-    inputU, inputN, inputP, inputP2 = regInputs()
-   
-    reEnter = input("Keep the following [Y/N]?: \n"+inputU+"\n"+inputN+" ")
-    check = FALSE
+    usersAmount = len(cursor.fetchall())
+    #connection.commit()
     
-    while check == FALSE:
+    usersAmount += 1
+    print("Suggested user u", usersAmount, ": ")
+    inputU, inputN, inputP, inputP2 = regInputs()
+
+    reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " ")
+    check = False
+
+    while check == False:
 
         if reEnter.lower() == 'n':
             inputU, inputN, inputP, inputP2 = regInputs()
@@ -163,29 +73,52 @@ def register():
             break
         else:
             print("Invalid input. Please try again")
-            reEnter = input("Keep the following [Y/N]?: \n"+inputU+"\n"+inputN+" ")
+            reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " ")
 
-    return  
-
- 
+    return inputU
 
 
 def login(cursor):
     #todo someone look at this and tell me if its okay lmao
-   
-    return
+    '''Login: nested loop unfortunately ready for this to run in O(n^2)?
+            main loop to authenticate, then two loops inside that wait for valid info'''
+            success = False
+    valid = True
+    uid = ""
+    pwd = ""
+    while ~success and valid:
+        uidSuccess = False
+        print("Please enter your User ID, or press enter to exit:")
+        while ~uidSuccess and valid:
+            uid = input("> ")
+            if uid == "":
+                valid = False
+                break
+            cursor.execute("SELECT * FROM USERS WHERE uid=?", (uid,))
+            if cursor.fetchone() != None:
+                uidSuccess = True
+                break
+            else:
+                print("No user with that username. Please try again, or press enter to exit.")
 
+        pwdSuccess = False
+        print("Please enter the password for user %s, or press enter to change user" % uid)
+        while ~pwdSuccess and valid:
+            pwd = getpass.getpass("> ")
+            if pwd == "":
+                uidSuccess = False
+                break
+            cursor.execute("SELECT * FROM USERS WHERE uid=? AND pwd=?", (uid,pwd))
+            if cursor.fetchone() != None:
+                cursor.execute("SELECT name FROM USERS WHERE uid=? AND pwd=?", (uid,pwd))
+                name = cursor.fetchone()
+                print("Login Successful. Welcome " + name)
+                return valid, uid
+            else:
+                print("Incorrect password. Please try again, or press enter to exit")
 
+    return valid, uid
 
-def introLoop():
-    print("Press 'L' to login to an existing account.\nPress 'R' to register a new account.\nPress 'Q' to quit.")
-    userInput = input("> ")
-    userInput = userInput.lower().strip()
-    while userInput != "r" and userInput != "l" and userInput != "q":
-        print("Invalid input. Please try again.")
-        userInput = input("> ")
-        userInput = userInput.lower().strip()
-    return userInput
 
 def addSong():
     '''CONCEPT: ask for title and duration as inputs
@@ -499,17 +432,22 @@ def user(user):
        return
 
     return
+
+
 def main():
     print("291 Mini-Project 1\n")
-    #todo please check i spelled your names right lmao
+    # todo please check i spelled your names right lmao
+
     print("By Anya Hanatuke, Alinn Martinez, and Ayaan Jutt\n")
     #todo link database using URL
     global path
     connection, cursor = connect(path)
-    quit = False
-    while ~quit:
+
+    quitProgram = False
+    while quitProgram == False:
         initialDone = False
-        while ~initialDone and ~quit:
+        while initialDone == False and quitProgram == False:
+
             logReg = introLoop()
             if logReg == 'r':
                 register()
@@ -518,12 +456,17 @@ def main():
                 login(cursor)
                 initialDone = True
             elif logReg == 'q':
-                quit = True
+
+                quitProgram = True
                 print("Thank you.")
-                return
+                break
 
         sessionDone = False
-        while ~sessionDone and ~quit:
+        while ~sessionDone and ~quitProgram:
             #todo uh oh this is the hard part
             break
+
+
+    connection.close()
 main()
+
