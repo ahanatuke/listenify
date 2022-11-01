@@ -18,7 +18,7 @@ def connect(path):
     return connection, cursor
 
 
-
+#todo is this function ever used?  don't think it is. maybe destroy it
 def introLoop():
     print("Press 'L' to login to an existing account.\nPress 'R' to register a new account.\nPress 'Q' to quit.")
     userInput = input("> ")
@@ -31,51 +31,81 @@ def introLoop():
     return userInput
 
 
-def regInputs():
-    inputU = input("Please enter a user id: ")
+def regInputs(suggestion, cursor):
+    #todo TEST THIS BITCH
+    validUid = False
+    print("Suggested user ID: " + suggestion)
+    while validUid == False:
+        inputU = input("Please enter a user id (max 4 characters), or press enter to use the suggested: ")
+        if inputU == "":
+            inputU = suggestion
+            validUid = True
+        elif len(inputU) > 4:
+            print("User ID is too long. ID can be at most 4 characters.")
+        else:
+            cursor.execute("""SELECT * FROM users WHERE uid = ?""", (inputU,))
+            if cursor.fetchone() == None:
+                validUid = True
+            else:
+                print("User ID is already taken.")
+
     inputN = input("Please enter your name: ")
     inputP = getpass.getpass(prompt="Enter a password: ")
     inputP2 = getpass.getpass(prompt="Re-enter password: ")
     while inputP != inputP2:
         print("Passwords don't match, please try again")
+        inputP = getpass.getpass(prompt="Enter a password: ")
         inputP2 = getpass.getpass(prompt="Re-enter password: ")
 
-    return inputU, inputN, inputP, inputP2
+    return inputU, inputN, inputP
 
 
 def register():
+    valid = True
     connection, cursor = connect(path)
     q = '''SELECT *
-    FROM users as u
+    FROM users
     '''
     cursor.execute(q)
 
+    #this functionality is probably unnecessary and yet, i did it anyway
+
     usersAmount = len(cursor.fetchall())
     #connection.commit()
-    
-    usersAmount += 1
-    print("Suggested user u", usersAmount, ": ")
-    inputU, inputN, inputP, inputP2 = regInputs()
 
-    reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " ")
+    usersAmount += 1
+    suggestion = "u"+str(usersAmount)
+    cursor.execute('''SELECT * FROM users WHERE uid=?''', (suggestion,))
+    while cursor.fetchone() != None:
+        usersAmount += 1
+        suggestion = "u" + str(usersAmount)
+        cursor.execute('''SELECT * FROM users WHERE uid=?''', (suggestion,))
+
+    inputU, inputN, inputP, inputP2 = regInputs(suggestion)
+
+    reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n (Press enter to cancel)")
     check = False
 
     while check == False:
 
-        if reEnter.lower() == 'n':
-            inputU, inputN, inputP, inputP2 = regInputs()
+        if reEnter.lower().strip() == 'n':
+            inputU, inputN, inputP = regInputs()
             break
-        elif reEnter.lower() == 'y':
+        elif reEnter.lower().strip() == 'y':
             q = '''INSERT INTO users 
             VALUES ((?), (?), (?))'''
             cursor.execute(q, (inputU, inputN, inputP))
             connection.commit()
             break
+        elif reEnter == "":
+            valid = False
+            inputU = ""
+            break
         else:
             print("Invalid input. Please try again")
             reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " ")
 
-    return inputU
+    return valid, inputU
 
 
 def login(cursor):
@@ -271,6 +301,7 @@ def orderByKW(arr, keys):
     return
 
 
+
 def songInfo():
     ''' Finish the query '''
     
@@ -453,8 +484,9 @@ def main():
                 register()
                 initialDone = True
             elif logReg == 'l':
-                login(cursor)
-                initialDone = True
+                valid, uid = login(cursor)
+                if valid == True:
+                    initialDone = True
             elif logReg == 'q':
 
                 quitProgram = True
