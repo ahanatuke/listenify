@@ -301,6 +301,7 @@ def orderByKW(arr, keys):
     return
 
 
+
 def songInfo():
     ''' Finish the query '''
 
@@ -386,7 +387,7 @@ def user(user):
             #leave
             if userInput[0] == '':
                 return
-
+            
             #focus on getting song1 to see what the user inputs is a song or a playlist
             elif userInput[0] == 'song' and int(userInput[1]) > 0:
                 print("Enter 'I' for the song information\nEnter 'L' to listen to the song\nEnter 'A' to add to a playlist\nHit ENTER to leave the selected song")
