@@ -121,12 +121,34 @@ def idCheck(id, cursor):
         artist = True
     return user, artist
 
+def userPwd(id, cursor):
+    print("Please enter the password for your user account, or press enter to exit.")
+    while True:
+        pwd = getpass.getpass("> ")
+        if pwd == "":
+            return False
+        cursor.execute("SELECT * FROM USERS WHERE uid LIKE ? AND pwd=?", (id, pwd))
+        if cursor.fetchone() != None:
+            return True
+        else:
+            print("Incorrect password: please try again or press enter to exit.")
+
+
+def artistPwd(id, cursor):
+    print("Please enter the password for your artist account, or press enter to exit.")
+    while True:
+        pwd = getpass.getpass("> ")
+        if pwd == "":
+            return False
+        cursor.execute("SELECT * FROM artists WHERE aid LIKE ? AND pwd=?", (id, pwd))
+        if cursor.fetchone() != None:
+            return True
+        else:
+            print("Incorrect password: please try again or press enter to exit.")
+
 ############################## LOGIN ###############################
 def login(cursor):
-    '''Login: nested loop unfortunately ready for this to run in O(n^2)?
-    print("Enter 'A' to login as an artist\nEnter 'U' to login as a user")'''
-    uInput = input('> ')
-    uInput = uInput.lower().strip()
+    '''Login: nested loop unfortunately ready for this to run in O(n^2)?'''
 
     success = False
     valid = True
@@ -171,19 +193,13 @@ def login(cursor):
 
         pwdSuccess = False
         print("Please enter the password for user %s, or press enter to change user" % uid)
-        while ~pwdSuccess and valid:
-            pwd = getpass.getpass("> ")
-            if pwd == "":
-                uidSuccess = False
-                break
-            cursor.execute("SELECT * FROM USERS WHERE uid LIKE ? AND pwd=?", (uid,pwd))
-            if cursor.fetchone() != None:
-                cursor.execute("SELECT name FROM USERS WHERE uid LIKE ? AND pwd=?", (uid,pwd))
-                name = cursor.fetchone()
-                print("Login Successful. Welcome " + name)
-                return valid, uid
-            else:
-                print("Incorrect password. Please try again, or press enter to exit")
+        if loginType == "user":
+            pwdSuccess = userPwd(uid, cursor)
+        elif loginType == "artist":
+            pwdSuccess = artistPwd(uid, cursor)
+
+        if pwdSuccess == True:
+            break
 
     return valid, uid, loginType
 
@@ -536,7 +552,7 @@ def main():
                 register()
                 initialDone = True
             elif logReg == 'l':
-                valid, uid = login(cursor)
+                valid, uid, userTitle = login(cursor)
                 if valid == True:
                     initialDone = True
             elif logReg == 'q':
@@ -547,7 +563,7 @@ def main():
         sessionDone = False
 
 
-        while sessionDone == False and ~quit:
+        while sessionDone == False and quitProgram == False:
             if userTitle == 'artist':
                 sessionDone = artist(id)
                 print('outta here')
