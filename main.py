@@ -3,7 +3,6 @@
     This must be fixed before handing in. '''
 #todo fix
 
-#todo add success checks to both login and register. should only continue if successful
 
 import sqlite3
 import getpass
@@ -124,7 +123,6 @@ def idCheck(id, cursor):
 
 ############################## LOGIN ###############################
 def login(cursor):
-    #todo someone look at this and tell me if its okay lmao
     '''Login: nested loop unfortunately ready for this to run in O(n^2)?
     print("Enter 'A' to login as an artist\nEnter 'U' to login as a user")'''
     uInput = input('> ')
@@ -521,7 +519,6 @@ def user(user):
 
 def main():
     print("291 Mini-Project 1\n")
-    # todo please check i spelled your names right lmao
 
     print("By Anya Hanatuke, Alinn Martinez, and Ayaan Jutt\n")
     #todo link database using URL
