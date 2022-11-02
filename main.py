@@ -83,15 +83,15 @@ def register():
         suggestion = "u" + str(usersAmount)
         cursor.execute('''SELECT * FROM users WHERE uid=?''', (suggestion,))
 
-    inputU, inputN, inputP, inputP2 = regInputs(suggestion, cursor)
+    inputU, inputN, inputP = regInputs(suggestion, cursor)
 
-    reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n (Press enter to cancel)")
+    reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n(Press enter to cancel) ")
     check = False
 
     while check == False:
 
         if reEnter.lower().strip() == 'n':
-            inputU, inputN, inputP = regInputs()
+            inputU, inputN, inputP = regInputs(suggestion, cursor)
             break
         elif reEnter.lower().strip() == 'y':
             q = '''INSERT INTO users 
@@ -154,7 +154,6 @@ def login(cursor):
     '''Login: nested loop unfortunately ready for this to run in O(n^2)?'''
 
 
-
     success = False
     valid = True
     uid = ""
@@ -162,8 +161,7 @@ def login(cursor):
 
     loginType = ""
     user, artist = False, False
-    while success==False and valid==True:
-
+    while success==True and valid==False:
         uidSuccess = False
         print("Please enter your User ID, or press enter to exit:")
         while uidSuccess == False and valid == True:
@@ -587,11 +585,8 @@ def main():
                 initialDone = True
             elif logReg == 'l':
                 valid, uid, userTitle = login(cursor)
-
                 if valid == True:
-
                     initialDone = True
-
 
             elif logReg == 'q':
                 quitProgram = True
