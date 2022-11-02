@@ -83,7 +83,7 @@ def register():
         suggestion = "u" + str(usersAmount)
         cursor.execute('''SELECT * FROM users WHERE uid=?''', (suggestion,))
 
-    inputU, inputN, inputP, inputP2 = regInputs(suggestion)
+    inputU, inputN, inputP, inputP2 = regInputs(suggestion, cursor)
 
     reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n (Press enter to cancel)")
     check = False
@@ -152,6 +152,7 @@ def artistPwd(id, cursor):
 ############################## LOGIN ###############################
 def login(cursor):
     '''Login: nested loop unfortunately ready for this to run in O(n^2)?'''
+
 
     success = False
     valid = True
