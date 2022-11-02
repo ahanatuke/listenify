@@ -154,6 +154,7 @@ def login(cursor):
     '''Login: nested loop unfortunately ready for this to run in O(n^2)?'''
 
 
+
     success = False
     valid = True
     uid = ""
@@ -161,7 +162,8 @@ def login(cursor):
 
     loginType = ""
     user, artist = False, False
-    while success==True and valid==False:
+    while success==False and valid==True:
+
         uidSuccess = False
         print("Please enter your User ID, or press enter to exit:")
         while uidSuccess == False and valid == True:
@@ -585,8 +587,11 @@ def main():
                 initialDone = True
             elif logReg == 'l':
                 valid, uid, userTitle = login(cursor)
+
                 if valid == True:
+
                     initialDone = True
+
 
             elif logReg == 'q':
                 quitProgram = True
