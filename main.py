@@ -28,8 +28,10 @@ def introLoop():
         userInput = input("> ")
         userInput = userInput.lower().strip()
 
-    return userInput
 
+
+
+############################## REGISTER ###############################
 
 def regInputs(suggestion, cursor):
     #todo TEST THIS BITCH
@@ -67,6 +69,9 @@ def register():
     FROM users
     '''
     cursor.execute(q)
+    usersAmount = len(cursor.fetchall()) + 1   
+    connection.commit()
+
 
     usersAmount = len(cursor.fetchall())
     #connection.commit()
@@ -102,55 +107,99 @@ def register():
             break
         else:
             print("Invalid input. Please try again")
-            reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " ")
-
+            reEnter = input("Keep the following [Y/N]?: \n"+inputU+"\n"+inputN+" ")
+  
     return valid, inputU
+############################## END OF REGISTER ###############################
 
 
+
+############################## LOGIN ###############################
 def login(cursor):
     #todo someone look at this and tell me if its okay lmao
     '''Login: nested loop unfortunately ready for this to run in O(n^2)?
-            main loop to authenticate, then two loops inside that wait for valid info'''
+    print("Enter 'A' to login as an artist\nEnter 'U' to login as a user")
+    uInput = input('> ')
+    uInput = uInput.lower().strip()
 
     success = False
     valid = True
-    uid = ""
     pwd = ""
-    while ~success and valid:
-        uidSuccess = False
-        print("Please enter your User ID, or press enter to exit:")
-        while ~uidSuccess and valid:
-            uid = input("> ")
-            if uid == "":
-                valid = False
-                break
-            cursor.execute("SELECT * FROM USERS WHERE uid=?", (uid,))
-            if cursor.fetchone() != None:
-                uidSuccess = True
-                break
-            else:
-                print("No user with that username. Please try again, or press enter to exit.")
+    
+    if uInput == 'u':
+        uid = ""
+        while ~success and valid:
+            uidSuccess = False
+            print("Please enter your User ID, or press enter to exit:")
+            while ~uidSuccess and valid:
+                uid = input("> ")
+                if uid == "":
+                    valid = False
+                    break
+                cursor.execute("SELECT * FROM USERS WHERE uid=?", (uid,))
+                if cursor.fetchone() != None:
+                    uidSuccess = True
+                    break
+                else:
+                    print("No user with that username. Please try again, or press enter to exit.")
 
-        pwdSuccess = False
-        print("Please enter the password for user %s, or press enter to change user" % uid)
-        while ~pwdSuccess and valid:
-            pwd = getpass.getpass("> ")
-            if pwd == "":
-                uidSuccess = False
-                break
-            cursor.execute("SELECT * FROM USERS WHERE uid=? AND pwd=?", (uid,pwd))
-            if cursor.fetchone() != None:
-                cursor.execute("SELECT name FROM USERS WHERE uid=? AND pwd=?", (uid,pwd))
-                name = cursor.fetchone()
-                print("Login Successful. Welcome " + name)
-                return valid, uid
-            else:
-                print("Incorrect password. Please try again, or press enter to exit")
+            pwdSuccess = False
+            print("Please enter the password for user %s, or press enter to change user" % uid)
+            while ~pwdSuccess and valid:
+                pwd = getpass.getpass("> ")
+                if pwd == "":
+                    uidSuccess = False
+                    break
+                cursor.execute("SELECT * FROM USERS WHERE uid=? AND pwd=?", (uid,pwd))
+                if cursor.fetchone() != None:
+                    cursor.execute("SELECT name FROM USERS WHERE uid=? AND pwd=?", (uid,pwd))
+                    name = cursor.fetchone()
+                    print("Login Successful. Welcome " + name[0])
+                    return valid, uid, 'user'
+                else:
+                    print("Incorrect password. Please try again, or press enter to exit")
 
-    return valid, uid
+        return valid, uid, None
+    elif uInput ==  'a':
+        aid = ""
+        while ~success and valid:
+            aidSuccess = False
+            print("Please enter your User ID, or press enter to exit:")
+            while ~aidSuccess and valid:
+                aid = input("> ")
+                if aid == "":
+                    valid = False
+                    break
+                cursor.execute("SELECT * FROM artists WHERE aid=?", (aid,))
+                if cursor.fetchone() != None:
+                    aidSuccess = True
+                    break
+                else:
+                    print("No artist with that username. Please try again, or press enter to exit.")
+
+            pwdSuccess = False
+            print("Please enter the password for user %s, or press enter to change user" %aid)
+            while ~pwdSuccess and valid:
+                pwd = getpass.getpass("> ")
+                if pwd == "":
+                    aidSuccess = False
+                    break
+                cursor.execute("SELECT * FROM artists WHERE aid=? AND pwd=?", (aid,pwd))
+                if cursor.fetchone() != None:
+                    cursor.execute("SELECT name FROM artists WHERE aid=? AND pwd=?", (aid,pwd))
+                    name = cursor.fetchone()
+                    print("Login Successful. Welcome " + name[0])
+                    return valid, aid, 'artist'
+                else:
+                    print("Incorrect password. Please try again, or press enter to exit")
+        return valid, aid, None
 
 
-def addSong():
+############################## END OF LOGIN ###############################
+
+
+############################## ARTIST ###############################
+def addSong(artist):
     '''CONCEPT: ask for title and duration as inputs
     get all songs and create a new sid by adding length of all songs + 1
     from there see if we can select a song from the input provided by the artist
@@ -181,10 +230,11 @@ def addSong():
         '''
     cursor.execute(q, (title, duration, artist, ))
     #1 song should exist like this, len of fetchone = 0 it should be unique HYPOTHETICALLY
-    songExist = len(cursor.fetchone())
+    songExist = cursor.fetchone()
     connection.commit()
 
-    if songExist == 0:
+    if songExist == None: 
+
         q = '''INSERT INTO songs 
         VALUES(?, ?, ?)'''
         cursor.execute(q, (sidNew, title, duration,))
@@ -207,11 +257,8 @@ def addSong():
 
     return
 
-def topListen():
-    ''' TO DO:
-    see if these actually work and finish the FROMS and WHERES'''
 
-
+def topListen(artist):
     connection, cursor = connect(path)
     q = '''SELECT u.uid
     FROM
@@ -243,22 +290,35 @@ def artist(artist):
     add a way to logout'''
     #artist is an aid of the user who logged in, used to check if a song exists or not
     connection, cursor = connect(path)
-    print("Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.")
+    print("Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.")
     userInput = input("> ")
     userInput = userInput.lower().strip()
-    while userInput != "s" and userInput != "f":
-        if userInput == 's':
-                addSong()
-        elif userInput == 'f':
-            topListen()
-        else:
+
+    check = True
+    while check:
+        
+        if userInput != "s" and userInput != "f" and userInput != 'l':
             print("Invalid input. Please try again.")
             userInput = input("> ")
             userInput = userInput.lower().strip()
-    return
+        elif userInput == 's': 
+            addSong(artist)
+        elif userInput == 'f':
+            topListen(artist)
+        elif userInput == 'l':
+            userInput = input("Are you sure you want to logout? [Y/N]\n> ").lower().strip()
+            if userInput == 'y':
+                check = False
+                return True
+            elif userInput == 'n':
+                print("Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.")
+                userInput = input("> ").lower().strip()
+        
+    return True
+############################## END OF ARTIST ###############################
 
 
-
+############################## USER ###############################
 def startSess():
     '''TO DO: Check if it works'''
 
@@ -463,6 +523,19 @@ def user(user):
        return
 
     return
+############################## END OF USER ###############################
+
+
+############################## INTRO ###############################
+def introLoop():
+    print("Press 'L' to login to an existing account.\nPress 'R' to register a new account.\nPress 'Q' to quit.")
+    userInput = input("> ")
+    userInput = userInput.lower().strip()
+    while userInput != "r" and userInput != "l" and userInput != "q":
+        print("Invalid input. Please try again.")
+        userInput = input("> ")
+        userInput = userInput.lower().strip()
+    return userInput
 
 
 def main():
@@ -473,12 +546,15 @@ def main():
     #todo link database using URL
     global path
     connection, cursor = connect(path)
-
-    quitProgram = False
-    while quitProgram == False:
-        initialDone = False
-        while initialDone == False and quitProgram == False:
-
+    quit = False
+    userTitle = ""
+    initialDone = False
+    sessionDone = False
+    while ~quit:
+        
+        
+        while initialDone == False and ~quit:
+            print(initialDone)
             logReg = introLoop()
             if logReg == 'r':
                 register()
@@ -487,17 +563,21 @@ def main():
                 valid, uid = login(cursor)
                 if valid == True:
                     initialDone = True
+                    
             elif logReg == 'q':
                 quitProgram = True
                 print("Thank you.")
                 break
 
-        sessionDone = False
-        while ~sessionDone and ~quitProgram:
-            #todo uh oh this is the hard part
-            break
-
-
-    connection.close()
+        
+        while sessionDone == False and ~quit:
+            if userTitle == 'artist':
+                sessionDone = artist(id)
+                print('outta here')
+                sessionDone = True
+            elif userTitle == 'user':
+                sessionDone = user(id)
+                sessionDone = True
+     
 main()
 
