@@ -3,7 +3,7 @@
     This must be fixed before handing in. '''
 #todo fix
 
-#finished the success checks for login and register
+#todo add success checks to both login and register. should only continue if successful
 
 import sqlite3
 import getpass
@@ -30,6 +30,8 @@ def introLoop():
 
     return userInput
 
+
+############################## REGISTER ###############################
 
 def regInputs(suggestion, cursor):
     #todo TEST THIS BITCH
@@ -105,12 +107,17 @@ def register():
             reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " ")
 
     return valid, inputU
+############################## END OF REGISTER ###############################
 
 
+
+############################## LOGIN ###############################
 def login(cursor):
     #todo someone look at this and tell me if its okay lmao
     '''Login: nested loop unfortunately ready for this to run in O(n^2)?
-            main loop to authenticate, then two loops inside that wait for valid info'''
+    print("Enter 'A' to login as an artist\nEnter 'U' to login as a user")'''
+    uInput = input('> ')
+    uInput = uInput.lower().strip()
 
     success = False
     valid = True
@@ -149,8 +156,11 @@ def login(cursor):
 
     return valid, uid
 
+############################## END OF LOGIN ###############################
 
-def addSong():
+
+############################## ARTIST ###############################
+def addSong(artist):
     '''CONCEPT: ask for title and duration as inputs
     get all songs and create a new sid by adding length of all songs + 1
     from there see if we can select a song from the input provided by the artist
@@ -181,10 +191,11 @@ def addSong():
         '''
     cursor.execute(q, (title, duration, artist, ))
     #1 song should exist like this, len of fetchone = 0 it should be unique HYPOTHETICALLY
-    songExist = len(cursor.fetchone())
+    songExist = cursor.fetchone()
     connection.commit()
 
-    if songExist == 0:
+    if songExist == None:
+
         q = '''INSERT INTO songs 
         VALUES(?, ?, ?)'''
         cursor.execute(q, (sidNew, title, duration,))
@@ -207,11 +218,8 @@ def addSong():
 
     return
 
-def topListen():
-    ''' TO DO:
-    see if these actually work and finish the FROMS and WHERES'''
 
-
+def topListen(artist):
     connection, cursor = connect(path)
     q = '''SELECT u.uid
     FROM
@@ -243,22 +251,35 @@ def artist(artist):
     add a way to logout'''
     #artist is an aid of the user who logged in, used to check if a song exists or not
     connection, cursor = connect(path)
-    print("Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.")
+    print("Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.")
     userInput = input("> ")
     userInput = userInput.lower().strip()
-    while userInput != "s" and userInput != "f":
-        if userInput == 's':
-                addSong()
-        elif userInput == 'f':
-            topListen()
-        else:
+
+    check = True
+    while check == True:
+
+        if userInput != "s" and userInput != "f" and userInput != 'l':
             print("Invalid input. Please try again.")
             userInput = input("> ")
             userInput = userInput.lower().strip()
-    return
+        elif userInput == 's':
+            addSong(artist)
+        elif userInput == 'f':
+            topListen(artist)
+        elif userInput == 'l':
+            userInput = input("Are you sure you want to logout? [Y/N]\n> ").lower().strip()
+            if userInput == 'y':
+                check = False
+                return True
+            elif userInput == 'n':
+                print("Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.")
+                userInput = input("> ").lower().strip()
+
+    return True
+############################## END OF ARTIST ###############################
 
 
-
+############################## USER ###############################
 def startSess():
     '''TO DO: Check if it works'''
 
@@ -475,6 +496,7 @@ def main():
     connection, cursor = connect(path)
 
     quitProgram = False
+    userTitle = ""
     while quitProgram == False:
         initialDone = False
         while initialDone == False and quitProgram == False:
@@ -493,11 +515,16 @@ def main():
                 break
 
         sessionDone = False
-        while sessionDone == False and quitProgram == False:
-            #todo uh oh this is the hard part
-            break
 
 
-    connection.close()
+        while sessionDone == False and ~quit:
+            if userTitle == 'artist':
+                sessionDone = artist(id)
+                print('outta here')
+                sessionDone = True
+            elif userTitle == 'user':
+                sessionDone = user(id)
+                sessionDone = True
+
 main()
 
