@@ -2,11 +2,11 @@ import sqlite3
 import main
 
 
-# this is for initializing the db so it doesn't wipe away any accounts you may add
+# this is for initializing the db, so it doesn't wipe away any accounts you may add
 # for testing purposes every single time you rerun the program
-# run this ONCE and then only rerun it if you wanna blow away the db and start from scratch
+# run this ONCE and then only rerun it if you want to blow away the db and start from scratch
 
-# for the record, i have no idea what the format we're expected to hand in is. I have made my own test data
+# for the record, I have no idea what the format we're expected to hand in is. I have made my own test data
 # by adjusting Aron Gu's.
 
 # the last 5 users are also artists. keep in mind
