@@ -1,5 +1,5 @@
 import sqlite3
-import main
+
 
 
 # this is for initializing the db, so it doesn't wipe away any accounts you may add
@@ -987,9 +987,16 @@ def populate_tables(connection):
     populate_artists(connection)
     populate_perform(connection)
 
+path = './291_proj'
+def connect(path):
+    connection = sqlite3.connect(path)
+    cursor = connection.cursor()
+    cursor.execute(' PRAGMA foreign_keys=ON; ')
+    connection.commit()
+    return connection, cursor
 
 def init_main():
-    connection, cursor = main.connect(main.path)
+    connection, cursor = connect(path)
 
     dropTables(cursor)
     createTables(cursor)

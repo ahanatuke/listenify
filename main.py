@@ -1,4 +1,4 @@
-""" NOTE: this file will only run if init_db.py has been run
+''' NOTE: this file will only run if init_db.py has been run
     at least once. otherwise, tables are never created.
     This must be fixed before handing in. '''
 #todo fix
@@ -35,7 +35,7 @@ def introLoop():
 ############################## REGISTER ###############################
 
 def regInputs(suggestion, cursor):
-    # todo TEST THIS BITCH
+    #todo TEST THIS BITCH
     validUid = False
     print("Suggested user ID: " + suggestion)
     while validUid == False:
@@ -83,7 +83,7 @@ def register():
         suggestion = "u" + str(usersAmount)
         cursor.execute('''SELECT * FROM users WHERE uid=?''', (suggestion,))
 
-    inputU, inputN, inputP, inputP2 = regInputs(suggestion)
+    inputU, inputN, inputP, inputP2 = regInputs(suggestion, cursor)
 
     reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n (Press enter to cancel)")
     check = False
@@ -124,14 +124,35 @@ def idCheck(id, cursor):
         artist = True
     return user, artist
 
+def userPwd(id, cursor):
+    print("Please enter the password for your user account, or press enter to exit.")
+    while True:
+        pwd = getpass.getpass("> ")
+        if pwd == "":
+            return False
+        cursor.execute("SELECT * FROM USERS WHERE uid LIKE ? AND pwd=?", (id, pwd))
+        if cursor.fetchone() != None:
+            return True
+        else:
+            print("Incorrect password: please try again or press enter to exit.")
+
+
+def artistPwd(id, cursor):
+    print("Please enter the password for your artist account, or press enter to exit.")
+    while True:
+        pwd = getpass.getpass("> ")
+        if pwd == "":
+            return False
+        cursor.execute("SELECT * FROM artists WHERE aid LIKE ? AND pwd=?", (id, pwd))
+        if cursor.fetchone() != None:
+            return True
+        else:
+            print("Incorrect password: please try again or press enter to exit.")
+
 ############################## LOGIN ###############################
 def login(cursor):
+    '''Login: nested loop unfortunately ready for this to run in O(n^2)?'''
 
-    '''Login: nested loop unfortunately ready for this to run in O(n^2)?
-    print("Enter 'A' to login as an artist\nEnter 'U' to login as a user")'''
-
-    uInput = input('> ')
-    uInput = uInput.lower().strip()"""
 
     success = False
     valid = True
@@ -177,19 +198,13 @@ def login(cursor):
 
         pwdSuccess = False
         print("Please enter the password for user %s, or press enter to change user" % uid)
-        while ~pwdSuccess and valid:
-            pwd = getpass.getpass("> ")
-            if pwd == "":
-                uidSuccess = False
-                break
-            cursor.execute("SELECT * FROM USERS WHERE uid LIKE ? AND pwd=?", (uid,pwd))
-            if cursor.fetchone() != None:
-                cursor.execute("SELECT name FROM USERS WHERE uid LIKE ? AND pwd=?", (uid,pwd))
-                name = cursor.fetchone()
-                print("Login Successful. Welcome " + name)
-                return valid, uid
-            else:
-                print("Incorrect password. Please try again, or press enter to exit")
+        if loginType == "user":
+            pwdSuccess = userPwd(uid, cursor)
+        elif loginType == "artist":
+            pwdSuccess = artistPwd(uid, cursor)
+
+        if pwdSuccess == True:
+            break
 
 
     return valid, uid, loginType
@@ -203,9 +218,9 @@ def addSong(artist):
     + 1 from there see if we can select a song from the input provided by the artist a song provided by the artist
     should be unique, and therefore if we check the len of songExist we should get a len of 0 If the song doesn't
     exist we insert it, and then request an input about whom the features are, once provided do a for loop and add
-    every feature Make sure to confirm that is either added in or exists
+    every feature Make sure to confirm that is either added in or exists"""
 
-    TO DO: check if it works"""
+    #TO DO: check if it works
 
     connection, cursor = connect(path)
 
@@ -569,7 +584,7 @@ def main():
                 register()
                 initialDone = True
             elif logReg == 'l':
-                valid, uid = login(cursor)
+                valid, uid, userTitle = login(cursor)
                 if valid == True:
                     initialDone = True
 
@@ -582,8 +597,8 @@ def main():
         sessionDone = False
 
 
+        while sessionDone == False and quitProgram == False:
 
-        while sessionDone == False and ~quit:
             if userTitle == 'artist':
                 sessionDone = artist(id)
                 print('outta here')
