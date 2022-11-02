@@ -1,8 +1,9 @@
 """ NOTE: this file will only run if init_db.py has been run
     at least once. otherwise, tables are never created.
-    This must be fixed before handing in. """
+    This must be fixed before handing in. '''
+#todo fix
 
-# todo add success checks to both login and register. should only continue if successful
+
 
 import sqlite3
 import getpass
@@ -18,7 +19,6 @@ def connect(path):
     return connection, cursor
 
 
-# todo is this function ever used?  don't think it is. maybe destroy it
 def introLoop():
     print("Press 'L' to login to an existing account.\nPress 'R' to register a new account.\nPress 'Q' to quit.")
     userInput = input("> ")
@@ -27,6 +27,9 @@ def introLoop():
         print("Invalid input. Please try again.")
         userInput = input("> ")
         userInput = userInput.lower().strip()
+
+    return userInput
+
 
 
 ############################## REGISTER ###############################
@@ -67,8 +70,6 @@ def register():
     FROM users
     '''
     cursor.execute(q)
-    usersAmount = len(cursor.fetchall()) + 1
-    connection.commit()
 
     usersAmount = len(cursor.fetchall())
     # connection.commit()
@@ -112,86 +113,86 @@ def register():
 ############################## END OF REGISTER ###############################
 
 
+def idCheck(id, cursor):
+    user = False
+    artist = False
+    cursor.execute("""SELECT * FROM USERS WHERE uid LIKE ?""", (id,))
+    if cursor.fetchone() != None:
+        user = True
+    cursor.execute("""SELECT * FROM artists WHERE aid LIKE ?""", (id, ))
+    if cursor.fetchone() != None:
+        artist = True
+    return user, artist
+
 ############################## LOGIN ###############################
 def login(cursor):
-    # todo someone look at this and tell me if its okay lmao
-    """Login: nested loop unfortunately ready for this to run in O(n^2)?
-    print("Enter 'A' to login as an artist\nEnter 'U' to login as a user")
+
+    '''Login: nested loop unfortunately ready for this to run in O(n^2)?
+    print("Enter 'A' to login as an artist\nEnter 'U' to login as a user")'''
+
     uInput = input('> ')
     uInput = uInput.lower().strip()"""
 
     success = False
     valid = True
+    uid = ""
     pwd = ""
 
-    if uInput == 'u':
-        uid = ""
-        while ~success and valid:
-            uidSuccess = False
-            print("Please enter your User ID, or press enter to exit:")
-            while ~uidSuccess and valid:
-                uid = input("> ")
-                if uid == "":
-                    valid = False
-                    break
-                cursor.execute("SELECT * FROM USERS WHERE uid=?", (uid,))
-                if cursor.fetchone() != None:
-                    uidSuccess = True
-                    break
-                else:
-                    print("No user with that username. Please try again, or press enter to exit.")
+    loginType = ""
+    user, artist = False, False
+    while success==True and valid==False:
+        uidSuccess = False
+        print("Please enter your User ID, or press enter to exit:")
+        while uidSuccess == False and valid == True:
+            uid = input("> ")
+            if uid == "":
+                valid = False
+                break
 
-            pwdSuccess = False
-            print("Please enter the password for user %s, or press enter to change user" % uid)
-            while ~pwdSuccess and valid:
-                pwd = getpass.getpass("> ")
-                if pwd == "":
-                    uidSuccess = False
-                    break
-                cursor.execute("SELECT * FROM USERS WHERE uid=? AND pwd=?", (uid, pwd))
-                if cursor.fetchone() != None:
-                    cursor.execute("SELECT name FROM USERS WHERE uid=? AND pwd=?", (uid, pwd))
-                    name = cursor.fetchone()
-                    print("Login Successful. Welcome " + name[0])
-                    return valid, uid, 'user'
-                else:
-                    print("Incorrect password. Please try again, or press enter to exit")
+            user, artist = idCheck(uid)
+            if user == False and artist == False:
+                print("No user with that username. Please try again, or press enter to exit.")
+                break
+            elif user == True and artist == False:
+                loginType = "user"
+                break
+            elif user == False and artist == True:
+                loginType = "artist"
+                break
+            elif user == True and artist == False:
+                print("Press 'A' to login as an artist. Press 'U' to login as a user.")
+                while True:
+                    loginTypeInput = input("> ")
+                    if loginTypeInput.lower().strip() == 'a':
+                        loginType = "artist"
+                        break
+                    elif loginTypeInput.lower().strip() == 'u':
+                        loginType = "user"
+                        break
+                    else:
+                        print("Invalid input. Please try again.")
 
-        return valid, uid, None
-    elif uInput == 'a':
-        aid = ""
-        while ~success and valid:
-            aidSuccess = False
-            print("Please enter your User ID, or press enter to exit:")
-            while ~aidSuccess and valid:
-                aid = input("> ")
-                if aid == "":
-                    valid = False
-                    break
-                cursor.execute("SELECT * FROM artists WHERE aid=?", (aid,))
-                if cursor.fetchone() != None:
-                    aidSuccess = True
-                    break
-                else:
-                    print("No artist with that username. Please try again, or press enter to exit.")
 
-            pwdSuccess = False
-            print("Please enter the password for user %s, or press enter to change user" % aid)
-            while ~pwdSuccess and valid:
-                pwd = getpass.getpass("> ")
-                if pwd == "":
-                    aidSuccess = False
-                    break
-                cursor.execute("SELECT * FROM artists WHERE aid=? AND pwd=?", (aid, pwd))
-                if cursor.fetchone() != None:
-                    cursor.execute("SELECT name FROM artists WHERE aid=? AND pwd=?", (aid, pwd))
-                    name = cursor.fetchone()
-                    print("Login Successful. Welcome " + name[0])
-                    return valid, aid, 'artist'
-                else:
-                    print("Incorrect password. Please try again, or press enter to exit")
-        return valid, aid, None
+                break
 
+        pwdSuccess = False
+        print("Please enter the password for user %s, or press enter to change user" % uid)
+        while ~pwdSuccess and valid:
+            pwd = getpass.getpass("> ")
+            if pwd == "":
+                uidSuccess = False
+                break
+            cursor.execute("SELECT * FROM USERS WHERE uid LIKE ? AND pwd=?", (uid,pwd))
+            if cursor.fetchone() != None:
+                cursor.execute("SELECT name FROM USERS WHERE uid LIKE ? AND pwd=?", (uid,pwd))
+                name = cursor.fetchone()
+                print("Login Successful. Welcome " + name)
+                return valid, uid
+            else:
+                print("Incorrect password. Please try again, or press enter to exit")
+
+
+    return valid, uid, loginType
 
 ############################## END OF LOGIN ###############################
 
@@ -294,7 +295,9 @@ def artist(artist):
     userInput = userInput.lower().strip()
 
     check = True
-    while check:
+
+    while check == True:
+
 
         if userInput != "s" and userInput != "f" and userInput != 'l':
             print("Invalid input. Please try again.")
@@ -540,37 +543,27 @@ def user(user):
     return
 
 
+
 ############################## END OF USER ###############################
 
-
-############################## INTRO ###############################
-def introLoop():
-    print("Press 'L' to login to an existing account.\nPress 'R' to register a new account.\nPress 'Q' to quit.")
-    userInput = input("> ")
-    userInput = userInput.lower().strip()
-    while userInput != "r" and userInput != "l" and userInput != "q":
-        print("Invalid input. Please try again.")
-        userInput = input("> ")
-        userInput = userInput.lower().strip()
-    return userInput
 
 
 def main():
     print("291 Mini-Project 1\n")
-    # todo please check i spelled your names right lmao
 
     print("By Anya Hanatuke, Alinn Martinez, and Ayaan Jutt\n")
     # todo link database using URL
     global path
     connection, cursor = connect(path)
-    quit = False
-    userTitle = ""
-    initialDone = False
-    sessionDone = False
-    while ~quit:
 
-        while initialDone == False and ~quit:
-            print(initialDone)
+    quitProgram = False
+    userTitle = ""
+
+    while quitProgram == False:
+        initialDone = False
+        while initialDone == False and quitProgram == False:
+
+
             logReg = introLoop()
             if logReg == 'r':
                 register()
@@ -584,6 +577,11 @@ def main():
                 quitProgram = True
                 print("Thank you.")
                 break
+
+
+        sessionDone = False
+
+
 
         while sessionDone == False and ~quit:
             if userTitle == 'artist':
