@@ -123,10 +123,10 @@ def login(cursor):
     valid = True
     uid = ""
     pwd = ""
-    while ~success and valid:
+    while success==True and valid==False:
         uidSuccess = False
         print("Please enter your User ID, or press enter to exit:")
-        while ~uidSuccess and valid:
+        while uidSuccess == False and valid == True:
             uid = input("> ")
             if uid == "":
                 valid = False
