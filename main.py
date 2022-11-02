@@ -111,6 +111,17 @@ def register():
 
 
 
+def idCheck(id, cursor):
+    user = False
+    artist = False
+    cursor.execute("""SELECT * FROM USERS WHERE uid LIKE ?""", (id,))
+    if cursor.fetchone() != None:
+        user = True
+    cursor.execute("""SELECT * FROM artists WHERE aid LIKE ?""", (id, ))
+    if cursor.fetchone() != None:
+        artist = True
+    return user, artist
+
 ############################## LOGIN ###############################
 def login(cursor):
     #todo someone look at this and tell me if its okay lmao
@@ -123,6 +134,8 @@ def login(cursor):
     valid = True
     uid = ""
     pwd = ""
+    loginType = ""
+    user, artist = False, False
     while success==True and valid==False:
         uidSuccess = False
         print("Please enter your User ID, or press enter to exit:")
@@ -131,12 +144,32 @@ def login(cursor):
             if uid == "":
                 valid = False
                 break
-            cursor.execute("SELECT * FROM USERS WHERE uid=?", (uid,))
-            if cursor.fetchone() != None:
-                uidSuccess = True
-                break
-            else:
+
+            user, artist = idCheck(uid)
+            if user == False and artist == False:
                 print("No user with that username. Please try again, or press enter to exit.")
+                break
+            elif user == True and artist == False:
+                loginType = "user"
+                break
+            elif user == False and artist == True:
+                loginType = "artist"
+                break
+            elif user == True and artist == False:
+                print("Press 'A' to login as an artist. Press 'U' to login as a user.")
+                while True:
+                    loginTypeInput = input("> ")
+                    if loginTypeInput.lower().strip() == 'a':
+                        loginType = "artist"
+                        break
+                    elif loginTypeInput.lower().strip() == 'u':
+                        loginType = "user"
+                        break
+                    else:
+                        print("Invalid input. Please try again.")
+
+
+                break
 
         pwdSuccess = False
         print("Please enter the password for user %s, or press enter to change user" % uid)
@@ -145,16 +178,16 @@ def login(cursor):
             if pwd == "":
                 uidSuccess = False
                 break
-            cursor.execute("SELECT * FROM USERS WHERE uid=? AND pwd=?", (uid,pwd))
+            cursor.execute("SELECT * FROM USERS WHERE uid LIKE ? AND pwd=?", (uid,pwd))
             if cursor.fetchone() != None:
-                cursor.execute("SELECT name FROM USERS WHERE uid=? AND pwd=?", (uid,pwd))
+                cursor.execute("SELECT name FROM USERS WHERE uid LIKE ? AND pwd=?", (uid,pwd))
                 name = cursor.fetchone()
                 print("Login Successful. Welcome " + name)
                 return valid, uid
             else:
                 print("Incorrect password. Please try again, or press enter to exit")
 
-    return valid, uid
+    return valid, uid, loginType
 
 ############################## END OF LOGIN ###############################
 
