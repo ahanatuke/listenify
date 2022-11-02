@@ -1,8 +1,9 @@
 ''' NOTE: this file will only run if init_db.py has been run
     at least once. otherwise, tables are never created.
     This must be fixed before handing in. '''
+#todo fix
 
-#todo add success checks to both login and register. should only continue if successful
+#finished the success checks for login and register
 
 import sqlite3
 import getpass
@@ -18,7 +19,6 @@ def connect(path):
     return connection, cursor
 
 
-#todo is this function ever used?  don't think it is. maybe destroy it
 def introLoop():
     print("Press 'L' to login to an existing account.\nPress 'R' to register a new account.\nPress 'Q' to quit.")
     userInput = input("> ")
@@ -493,7 +493,7 @@ def main():
                 break
 
         sessionDone = False
-        while ~sessionDone and ~quitProgram:
+        while sessionDone == False and quitProgram == False:
             #todo uh oh this is the hard part
             break
 
