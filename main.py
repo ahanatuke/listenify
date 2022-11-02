@@ -1,7 +1,8 @@
-''' NOTE: this file will only run if init_db.py has been run
+""" NOTE: this file will only run if init_db.py has been run
     at least once. otherwise, tables are never created.
     This must be fixed before handing in. '''
 #todo fix
+
 
 
 import sqlite3
@@ -30,10 +31,11 @@ def introLoop():
     return userInput
 
 
+
 ############################## REGISTER ###############################
 
 def regInputs(suggestion, cursor):
-    #todo TEST THIS BITCH
+    # todo TEST THIS BITCH
     validUid = False
     print("Suggested user ID: " + suggestion)
     while validUid == False:
@@ -70,11 +72,11 @@ def register():
     cursor.execute(q)
 
     usersAmount = len(cursor.fetchall())
-    #connection.commit()
+    # connection.commit()
 
-    #this functionality is probably unnecessary and yet, i did it anyway
+    # this functionality is probably unnecessary and yet, i did it anyway
     usersAmount += 1
-    suggestion = "u"+str(usersAmount)
+    suggestion = "u" + str(usersAmount)
     cursor.execute('''SELECT * FROM users WHERE uid=?''', (suggestion,))
     while cursor.fetchone() != None:
         usersAmount += 1
@@ -106,8 +108,9 @@ def register():
             reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " ")
 
     return valid, inputU
-############################## END OF REGISTER ###############################
 
+
+############################## END OF REGISTER ###############################
 
 
 def idCheck(id, cursor):
@@ -123,15 +126,18 @@ def idCheck(id, cursor):
 
 ############################## LOGIN ###############################
 def login(cursor):
+
     '''Login: nested loop unfortunately ready for this to run in O(n^2)?
     print("Enter 'A' to login as an artist\nEnter 'U' to login as a user")'''
+
     uInput = input('> ')
-    uInput = uInput.lower().strip()
+    uInput = uInput.lower().strip()"""
 
     success = False
     valid = True
     uid = ""
     pwd = ""
+
     loginType = ""
     user, artist = False, False
     while success==True and valid==False:
@@ -185,6 +191,7 @@ def login(cursor):
             else:
                 print("Incorrect password. Please try again, or press enter to exit")
 
+
     return valid, uid, loginType
 
 ############################## END OF LOGIN ###############################
@@ -192,18 +199,17 @@ def login(cursor):
 
 ############################## ARTIST ###############################
 def addSong(artist):
-    '''CONCEPT: ask for title and duration as inputs
-    get all songs and create a new sid by adding length of all songs + 1
-    from there see if we can select a song from the input provided by the artist
-    a song provided by the artist should be unique, and therefore if we check the len of songExist we should get a len of 0
-    If the song doesn't exist we insert it, and then request an input about who the features are, once provided do a for loop and add every feature
-    Make sure to confirm that is either added in or exists
+    """CONCEPT: ask for title and duration as inputs get all songs and create a new sid by adding length of all songs
+    + 1 from there see if we can select a song from the input provided by the artist a song provided by the artist
+    should be unique, and therefore if we check the len of songExist we should get a len of 0 If the song doesn't
+    exist we insert it, and then request an input about whom the features are, once provided do a for loop and add
+    every feature Make sure to confirm that is either added in or exists
 
-    TO DO: check if it works'''
+    TO DO: check if it works"""
 
     connection, cursor = connect(path)
 
-   #get all songs and get len
+    # get all songs and get len
     q = '''SELECT *
             FROM songs as s'''
     cursor.execute(q)
@@ -215,13 +221,13 @@ def addSong(artist):
     duration = input("Duration (in seconds): ")
     duration = int(duration)
 
-    #CHECK IF THE SONG EXISTS
+    # CHECK IF THE SONG EXISTS
     q = '''SELECT  s.title, s.duration
         FROM songs as s, artists as a, perform as p
         WHERE s.title = ? AND s.duration = ? AND a.aid = ? AND p.sid = s.sid AND p.aid = a.aid 
         '''
-    cursor.execute(q, (title, duration, artist, ))
-    #1 song should exist like this, len of fetchone = 0 it should be unique HYPOTHETICALLY
+    cursor.execute(q, (title, duration, artist,))
+    # 1 song should exist like this, len of fetchone = 0 it should be unique HYPOTHETICALLY
     songExist = cursor.fetchone()
     connection.commit()
 
@@ -235,13 +241,13 @@ def addSong(artist):
         inputChecker = userInput.split()
         if inputChecker != '':
             result = [x.strip() for x in userInput.split(',')]
-            #assuming we dont need to validate aids for every feature
+            # assuming we dont need to validate aids for every feature
             for feature in result:
                 q = '''INSERT INTO perform 
                 VALUES (?, ?)'''
                 cursor.execute(q, (feature, sidNew))
                 connection.commit()
-        print("Song %s has been successfully added in." %songExist)
+        print("Song %s has been successfully added in." % songExist)
 
 
     else:
@@ -264,7 +270,6 @@ def topListen(artist):
     for user in top3U:
         print(user)
 
-
     q = '''SELECT p.pid
     FROM
     WHERE
@@ -277,17 +282,22 @@ def topListen(artist):
     for playlist in top3P:
         print(playlist)
 
+
 def artist(artist):
-    '''TO DO: check if it works,
-    add a way to logout'''
-    #artist is an aid of the user who logged in, used to check if a song exists or not
+    """TO DO: check if it works,
+    add a way to logout"""
+    # artist is an aid of the user who logged in, used to check if a song exists or not
     connection, cursor = connect(path)
-    print("Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.")
+    print(
+        "Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter "
+        "'L' to logout.")
     userInput = input("> ")
     userInput = userInput.lower().strip()
 
     check = True
+
     while check == True:
+
 
         if userInput != "s" and userInput != "f" and userInput != 'l':
             print("Invalid input. Please try again.")
@@ -303,27 +313,30 @@ def artist(artist):
                 check = False
                 return True
             elif userInput == 'n':
-                print("Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.")
+                print(
+                    "Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.")
                 userInput = input("> ").lower().strip()
 
     return True
+
+
 ############################## END OF ARTIST ###############################
 
 
 ############################## USER ###############################
 def startSess():
-    '''TO DO: Check if it works'''
+    """TO DO: Check if it works"""
 
     connection, cursor = connect(path)
 
-    #get all sessions and add 1 to get a next sno
+    # get all sessions and add 1 to get a next sno
     q = '''SELECT *
         FROM sessions'''
     cursor.execute(q)
     newSession = len(cursor.fetchall()) + 1
     connection.commit()
 
-    #add the session in
+    # add the session in
     q = '''
     INSERT INTO sessions(sno, start, end)
     VALUES(?, datetime('now'), NULL)
@@ -333,8 +346,9 @@ def startSess():
 
     return newSession
 
+
 def endSess(sessNo):
-    '''TO DO: Check if it works'''
+    """TO DO: Check if it works"""
 
     connection, cursor = connect(path)
     q = '''INSERT INTO sessions(end)
@@ -345,19 +359,19 @@ def endSess(sessNo):
 
     return
 
+
 def orderByKW(arr, keys):
-    '''TO DO: order the tuples so that the one with the most matched keywords is at the top of the list
-    RETURN THE LIST '''
-    #arr is the tuple, keys is the keyword, order DESC with the top
-    #most array being the one with the most key words matched
+    """TO DO: order the tuples so that the one with the most matched keywords is at the top of the list
+    RETURN THE LIST """
+    # arr is the tuple, keys is the keyword, order DESC with the top
+    # most array being the one with the most keywords matched
     return
 
 
-
 def songInfo():
-    ''' Finish the query '''
+    """ Finish the query """
 
-    #get artist name, sid, title and duration + any playlist the song is in
+    # get artist name, sid, title and duration + any playlist the song is in
     connection, cursor = connect(path)
     q = '''SELECT
     FROM
@@ -371,33 +385,35 @@ def songInfo():
 
     return
 
+
 def user(user):
-    '''LOTS TO DO:
+    """LOTS TO DO:
     ***___*** => things to start on
 
-    '''
-    #user is an uid of the user to logged in
+    """
+    # user is an uid of the user to logged in
     connection, cursor = connect(path)
 
-
-    print("To start a session enter 'S'\n To search for a song or playlist enter 'K'\nEnter 'A' to search for an artist\nTo end the session press 'E': ")
+    print(
+        "To start a session enter 'S'\n To search for a song or playlist enter 'K'\nEnter 'A' to search for an "
+        "artist\nTo end the session press 'E': ")
     userInput = input("> ")
     userInput = userInput.lower().strip()
 
     if userInput == 's':
         sessNo = startSess()
     elif userInput == 'k':
-        #" user should be able to provide one or more unique keywords,"
+        # " user should be able to provide one or more unique keywords,"
         # FOCUS ON: Either having it be one input split into an array or requesting multiple inputs for keywords (probably the best????)
-        #must indicate if playlist or song is displayed
+        # must indicate if playlist or song is displayed
 
         userInput = input("Please enter keywords to search for playlists or songs by spaces only.\n>")
 
-        #get the keywords into an array
+        # get the keywords into an array
         keyWords = userInput.split()
 
         '''*** TO DO: get the rows, even if they're unordered thats okay we'll sort it in orderbyKW() *** '''
-        #get all matching rows from keywords
+        # get all matching rows from keywords
         q = ''' 
 
         SELECT 
@@ -409,7 +425,6 @@ def user(user):
         allMatching = cursor.fetchall()
         connection.commit()
 
-
         '''TO DO: 
         ***FIRST: order the tuples by what has the most keywords
         SECOND: print the 5 out
@@ -419,7 +434,7 @@ def user(user):
         '''
         orderedList = orderByKW(allMatching, keyWords)
 
-        #print the first 5
+        # print the first 5
         index = 0
         while index < 5:
             print(allMatching[index])
@@ -431,31 +446,39 @@ def user(user):
         ways to solve this: maybe look into finding a way within the for loop to attach an s or a p to the id?
         only playlists have users, and only song have duration, look into that or other ways to distinguish whats a playlist. 
        '''
-        print("Enter the id of a playlist or song you want to select as (playlist/song [number])\nEnter 'N' to go to the next 5\Hit 'ENTER' to leave")
+        print(
+            "Enter the id of a playlist or song you want to select as (playlist/song [number])\nEnter 'N' to go to "
+            "the next 5\Hit 'ENTER' to leave")
         userInput = input("> ")
         userInput = userInput.lower().strip()
 
-        while(userInput[0] != ''):
-            #leave
+        while (userInput[0] != ''):
+            # leave
             if userInput[0] == '':
                 return
-            
-            #focus on getting song1 to see what the user inputs is a song or a playlist
+
+            # focus on getting song1 to see what the user inputs is a song or a playlist
             elif userInput[0] == 'song' and int(userInput[1]) > 0:
-                print("Enter 'I' for the song information\nEnter 'L' to listen to the song\nEnter 'A' to add to a playlist\nHit ENTER to leave the selected song")
+                print(
+                    "Enter 'I' for the song information\nEnter 'L' to listen to the song\nEnter 'A' to add to a "
+                    "playlist\nHit ENTER to leave the selected song")
                 uInput = input("> ")
                 uInput = uInput.lower().strip()
 
-                #set up a while loop here
+                # set up a while loop here
                 if uInput == 'i':
-                   songInfo()
+                    songInfo()
                 elif uInput == 'L':
-                    '''a listening event is recorded within the current session of the user (if a session has already started for the user) or within a new session (if not). 
-                    When starting a new session, follow the steps given for starting a session. A listening event is recorded by either inserting a row to table listen or increasing the listen count in this table by 1'''
+                    '''a listening event is recorded within the current session of the user (if a session has already 
+                    started for the user) or within a new session (if not). When starting a new session, follow the 
+                    steps given for starting a session. A listening event is recorded by either inserting a row to 
+                    table listen or increasing the listen count in this table by 1 '''
                     print('fkn do something')
                 elif uInput == 'a':
-                    '''When adding a song to a playlist, the song can be added to an existing playlist owned by the user (if any) or to a new playlist.
-                    When it is added to a new playlist, a new playlist should be created with a unique id (created by your system) and the uid set to the id of the user and a title should be obtained from input. '''
+                    '''When adding a song to a playlist, the song can be added to an existing playlist owned by the 
+                    user (if any) or to a new playlist. When it is added to a new playlist, a new playlist should be 
+                    created with a unique id (created by your system) and the uid set to the id of the user and a 
+                    title should be obtained from input. '''
                     print('fkn do something')
                 elif uInput == '':
                     break
@@ -476,8 +499,8 @@ def user(user):
                 for song in pSongs:
                     print(song)
             elif userInput[0] == 'd':
-                #while index hasn't reached the end or over the array
-                #print the next 5 and ask again
+                # while index hasn't reached the end or over the array
+                # print the next 5 and ask again
                 while 1:
                     break
 
@@ -485,12 +508,15 @@ def user(user):
     elif userInput == 'a':
         ''' ***TO DO: find artist by keywords. 
         
-        The user should be able to provide one or more unique keywords, and the system should retrieve all artists that have any of those keywords either in their names 
-        or in the title of a song they have performed. For each matching artist, the name, the nationality and the number of songs performed are returned. 
-        The result should be ordered based on the number of matching keywords with artists that match the largest number of keywords listed on top. 
-        If there are more than 5 matching artists, at most 5 matches will be shown at a time, letting the user either select a match for more information or see the rest of 
-        the matches in a paginated downward format. The user should be able to select an artist and see the id, the title and the duration of all their songs. 
-        Any time a list of songs are displayed, the user should be able to select a song and perform a song action as discussed next. 
+        The user should be able to provide one or more unique keywords, and the system should retrieve all artists 
+        that have any of those keywords either in their names or in the title of a song they have performed. For each 
+        matching artist, the name, the nationality and the number of songs performed are returned. The result should 
+        be ordered based on the number of matching keywords with artists that match the largest number of keywords 
+        listed on top. If there are more than 5 matching artists, at most 5 matches will be shown at a time, 
+        letting the user either select a match for more information or see the rest of the matches in a paginated 
+        downward format. The user should be able to select an artist and see the id, the title and the duration of 
+        all their songs. Any time a list of songs are displayed, the user should be able to select a song and perform 
+        a song action as discussed next. 
         
         *** '''
 
@@ -511,25 +537,32 @@ def user(user):
         orderedList = orderByKW(allMatching, keyWords)
 
     elif userInput == 'e':
-       endSess(sessNo)
-       return
+        endSess(sessNo)
+        return
 
     return
+
+
+
+############################## END OF USER ###############################
+
 
 
 def main():
     print("291 Mini-Project 1\n")
 
     print("By Anya Hanatuke, Alinn Martinez, and Ayaan Jutt\n")
-    #todo link database using URL
+    # todo link database using URL
     global path
     connection, cursor = connect(path)
 
     quitProgram = False
     userTitle = ""
+
     while quitProgram == False:
         initialDone = False
         while initialDone == False and quitProgram == False:
+
 
             logReg = introLoop()
             if logReg == 'r':
@@ -539,12 +572,15 @@ def main():
                 valid, uid = login(cursor)
                 if valid == True:
                     initialDone = True
+
             elif logReg == 'q':
                 quitProgram = True
                 print("Thank you.")
                 break
 
+
         sessionDone = False
+
 
 
         while sessionDone == False and ~quit:
@@ -556,5 +592,5 @@ def main():
                 sessionDone = user(id)
                 sessionDone = True
 
-main()
 
+main()
