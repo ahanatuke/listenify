@@ -531,21 +531,19 @@ def displayPlaylist(plID, cursor, connection):
     connection.commit()
     index = 0
     for song in pSongs:
-        print(str(index)+'.', song)
-        index += 1
+        print(song)
 
-    print("Select a song number from 0 to "+str(index)+"." )
-    userInput = input("> ")
-    check = True
-    while(check):
-        try:
-            uI = int(userInput)
-            if uI > index or uI < 0:
-                raise exception
-            check = False
-        except:
-            print("Invalid number, please try again")
-            userInput = input("> ")
+    print("Enter a song ID for more information or press enter to exit")
+    while True:
+        userInput = input("> ")
+        if userInput == "":
+            return
+        for s in pSongs:
+            if userInput.strip().lower() == str(s[0]):
+                return int(userInput)
+
+        print("Invalid input, please try again")
+
 
 
 def orderByKWP(cursor, keyWords):
@@ -738,11 +736,10 @@ def user(user):
             elif results[selectedItem][2] == 1:
                 pid = str(results[selectedItem][0][0])
                 print(pid)
-                displayPlaylist(pid, cursor, connection)
-                print("Input an Song id for more information, or press enter to exit")
-                sid = input("> ")
+                sid = displayPlaylist(pid, cursor, connection)
+
                 while True:
-                    if sid == "":
+                    if sid == None:
                         break
                     elif cursor.execute("""SELECT * FROM songs WHERE sid = ?""", (sid,)).fetchone() != None:
                         selectSong(sid, cursor, connection)
@@ -876,13 +873,13 @@ def main():
     print("By Anya Hanatuke, Alinn Martinez, and Ayaan Jutt\n")
     # todo link database using URL
     #global path
-    
+
     path = input("Please enter a database\n> ")
     path = './'+path
-    
+
     connection, cursor = connect(path)
 
-    
+
 
     quitProgram = False
     userTitle = ""
