@@ -340,8 +340,9 @@ def addSong(artist, cursor, connection):
     return
 
 
+
 def topListen(artist,  cursor, connection):
-    connection, cursor = connect(path)
+
     q = '''SELECT DISTINCT u.uid, a.name
     FROM users u, sessions ses, listen l, artists a, perform p, songs s
     WHERE ses.uid = l.uid
@@ -712,10 +713,11 @@ def user(user):
 
 
             selectedItem = utilities.paginate(items)
+
             if selectedItem == None:
                 #todo fix me make all this a fxn n do a return
                 pass
-            elif results[selectedItem][2]== 0:
+            elif results[selectedItem][2] == 0:
                 #todo its a song do the song thing
                 pass
             elif results[selectedItem][2] == 1:
@@ -774,16 +776,54 @@ def user(user):
             userInput = input("Please enter keywords to search for an artist by spaces only.\n>")
 
             keyWords = userInput.split()
-            q = ''' 
-            SELECT a.name, a.nationality, COUNT(s.sid)
-            FROM songs as s, artasts as a, perform as p
-            WHERE s.sid = p.sid AND a.aid = p.aid AND ((s.title LIKE ? AND  a.name LIKE ?) OR s.title LIKE ? OR a.name LIKE ?)
-            '''
-            cursor.execute(q, (keyWords[0], keyWords[1], keyWords[0], keyWords[1],))
-            allMatching = cursor.fetchall()
-            connection.commit()
+            for word in keyWords:
+                q = ''' 
+                SELECT a.name, a.nationality, COUNT(s.sid)
+                FROM songs as s, artists as a, perform as p
+                WHERE s.sid = p.sid AND a.aid = p.aid AND (s.title LIKE ? OR a.name LIKE ?)
+                GROUP BY a.aid
+                '''
+                cursor.execute(q, ("%"+word.lower().strip()+"%","%"+word.lower().strip()+"%"))
+                allMatching = cursor.fetchall()
 
-            orderedList = orderByKW(allMatching, keyWords)
+                artistResults = []
+                i=0
+                for artist in allMatching:
+                    i += 1
+                    artist = list(artist)
+                    inMatched = False
+                    if len(artistResults)==0:
+                        result = [artist, 1, i]
+                        artistResults.append(result)
+                    else:
+                        for result in artistResults:
+                            if result == artist:
+                                result[1] += 1
+                                inMatched = True
+                                break
+
+                        if inMatched == False:
+                            result = [artist, 1, i]
+                            artistResults.append(result)
+
+                results = sorted(artistResults, key=lambda p: p[1])
+
+                items = []
+                for i in range(len(artistResults)):
+                    items.append(results[i][0])
+
+                selectedArtist = utilities.paginate(items)
+
+                if selectedArtist == None:
+                    pass
+                #todo do the quit
+                else:
+                    artist = items[selectedArtist]
+                    cursor.execute("""SELECT aid FROM artists WHERE name = ? AND nationality = ?""", (artist[0], artist[1]))
+                    aid = cursor.fetchone()
+                    #todo something here
+
+
 
         elif userInput == 'd':
             endSess(sessNo, cursor, connection)
