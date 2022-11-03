@@ -305,7 +305,7 @@ def addSong(artist):
 
 
 def topListen(artist):
-    # TODO: theoretically works -- first query should be getting the longest listen time, needs testing
+    # TODO: theoretically works -- first query should be getting the longest listen time, needs testing and checking
     connection, cursor = connect(path)
     q = '''SELECT DISTINCT u.uid, a.name
     FROM users u, sessions ses, listen l, artists a, perform p, songs s
