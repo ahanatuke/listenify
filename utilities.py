@@ -13,12 +13,14 @@ def paginate(items, num = 5):
     pageIndices = []
     for i in range(1,num):
         pageIndices.append(str(i))
+    if (maxIndex+1) < num:
+        num = maxIndex+1
 
     print("Enter 'N' to go to the next page. Enter 'P' to go to the previous page.\n"
           "Enter a number from 1 to "+str(num)+" to select that result. Press Enter to quit")
 
     while True:
-        for i in range(0,5):
+        for i in range(0,num):
             print(items[pageNum + i])
         print("Page " + str(pageNum) +" / " + str(numPages))
 
