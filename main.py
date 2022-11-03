@@ -31,9 +31,13 @@ def introLoop():
 
 
 def checkQuit(uInput):
-    # TODO: @alinn check if user ever enters 'Q' at any input
+    # TODO: @alinn check if it works
     if uInput.lower().strip() == 'q':
-        pass
+        print("Would you like to quit the program?")
+        quit = input('> ')
+
+        if quit:
+            exit()
 
 
 ############################## REGISTER ###############################
