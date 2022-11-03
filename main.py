@@ -441,7 +441,6 @@ def startSess(cursor, connection):
 
     return newSession
 
-
 def endSess(sessNo, cursor, connection):
     """TODO: Check if it works"""
 
@@ -453,10 +452,6 @@ def endSess(sessNo, cursor, connection):
     connection.commit()
 
     return
-
-
-
-
 
 def songInfo(song, cursor, connection):
     #song = sid
@@ -476,8 +471,6 @@ def songInfo(song, cursor, connection):
 
     for info in songInfo:
         print(info)
-
-
 
 def addToPlaylist(sessNo, userInput, user, cursor, connection): 
     #todo: just pass the cursor, don't do this
@@ -625,7 +618,6 @@ def orderByKWP(cursor, keyWords):
     
     return results, items
 
-
 def selectSong(sid,cursor, connection):
     print(
     "Enter 'I' for the song information\nEnter 'L' to listen to the song\nEnter 'A' to add to a "
@@ -720,6 +712,8 @@ def user(user):
                 pass
             elif results[selectedItem][2] == 1:
                 #todo its a playlist do the playlist thing
+                pId = results[selectedItem][0][0]
+                displayPlaylist()
                 pass
 
 
@@ -748,7 +742,7 @@ def user(user):
 
                 elif userInput[0] == 'playlist' and int(userInput[1]) > 0:
                     #GET PLAYLIST ID
-                    displayPlaylist(playlistID, cursor, connection)
+                    displayPlaylist(pId, cursor, connection)
                     
                 elif userInput[0] == 'd':
                     # while index hasn't reached the end or over the array
@@ -783,7 +777,7 @@ def user(user):
             allMatching = cursor.fetchall()
             connection.commit()
 
-            orderedList = orderByKW(allMatching, keyWords)
+
 
         elif userInput == 'd':
             endSess(sessNo, cursor, connection)
@@ -815,8 +809,11 @@ def main():
     print("291 Mini-Project 1\n")
 
     print("By Anya Hanatuke, Alinn Martinez, and Ayaan Jutt\n")
+
+    path = input("Please enter a database name\n> ")
+    path = './'+path
     # todo link database using URL
-    global path
+    #global path
     connection, cursor = connect(path)
 
     quitProgram = False
