@@ -1,8 +1,7 @@
-''' NOTE: this file will only run if init_db.py has been run
+""" NOTE: this file will only run if init_db.py has been run
     at least once. otherwise, tables are never created.
-    This must be fixed before handing in. '''
-#todo fix
-
+    This must be fixed before handing in. """
+# todo fix
 
 
 from audioop import add
@@ -32,11 +31,19 @@ def introLoop():
     return userInput
 
 
+def checkQuit(uInput):
+    # TODO: @alinn check if it works
+    if uInput.lower().strip() == 'q':
+        print("Would you like to quit the program?")
+        quit = input('> ')
+
+        if quit:
+            exit()
+
 
 ############################## REGISTER ###############################
 
 def regInputs(suggestion, cursor):
-    #todo TEST THIS BITCH
     validUid = False
     print("Suggested user ID: " + suggestion)
     while validUid == False:
@@ -64,6 +71,16 @@ def regInputs(suggestion, cursor):
     return inputU, inputN, inputP
 
 
+def regSuccess(id, cursor):
+    cursor.execute("""SELECT * FROM USERS WHERE uid LIKE ?""", (id,))
+    if cursor.fetchone() is not None:
+        print("You have successfully registered.")
+        return True
+    else:
+        print("Registration was unsuccessful.")
+        return False
+
+
 def register():
     valid = True
     connection, cursor = connect(path)
@@ -79,34 +96,36 @@ def register():
     usersAmount += 1
     suggestion = "u" + str(usersAmount)
     cursor.execute('''SELECT * FROM users WHERE uid=?''', (suggestion,))
-    while cursor.fetchone() != None:
+    while cursor.fetchone() is not None:
         usersAmount += 1
         suggestion = "u" + str(usersAmount)
         cursor.execute('''SELECT * FROM users WHERE uid=?''', (suggestion,))
 
-    inputU, inputN, inputP, inputP2 = regInputs(suggestion, cursor)
+    inputU, inputN, inputP = regInputs(suggestion, cursor)
 
-    reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n (Press enter to cancel)")
+    reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n(Press enter to cancel) ")
     check = False
 
     while check == False:
 
         if reEnter.lower().strip() == 'n':
-            inputU, inputN, inputP = regInputs()
+            print("Your information has been discarded.")
+            inputU, inputN, inputP = regInputs(suggestion, cursor)
             break
         elif reEnter.lower().strip() == 'y':
             q = '''INSERT INTO users 
             VALUES ((?), (?), (?))'''
             cursor.execute(q, (inputU, inputN, inputP))
             connection.commit()
+            valid = regSuccess(inputU, cursor)
             break
         elif reEnter == "":
             valid = False
             inputU = ""
             break
         else:
-            print("Invalid input. Please try again")
-            reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " ")
+            print("Invalid input. Please try again.")
+            reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n(Press enter to cancel) ")
 
     return valid, inputU
 
@@ -118,12 +137,13 @@ def idCheck(id, cursor):
     user = False
     artist = False
     cursor.execute("""SELECT * FROM USERS WHERE uid LIKE ?""", (id,))
-    if cursor.fetchone() != None:
+    if cursor.fetchone() is not None:
         user = True
-    cursor.execute("""SELECT * FROM artists WHERE aid LIKE ?""", (id, ))
-    if cursor.fetchone() != None:
+    cursor.execute("""SELECT * FROM artists WHERE aid LIKE ?""", (id,))
+    if cursor.fetchone() is not None:
         artist = True
     return user, artist
+
 
 def userPwd(id, cursor):
     print("Please enter the password for your user account, or press enter to exit.")
@@ -150,6 +170,7 @@ def artistPwd(id, cursor):
         else:
             print("Incorrect password: please try again or press enter to exit.")
 
+
 ############################## LOGIN ###############################
 def endProg(): 
     userInput = input("Would you like to close the program? [Y/N]\n> ")
@@ -163,9 +184,7 @@ def endProg():
 
 
 def login(cursor):
-    '''Login: nested loop unfortunately ready for this to run in O(n^2)?'''
-
-
+    """Login: nested loop unfortunately ready for this to run in O(n^2)?"""
 
     success = False
     valid = True
@@ -174,8 +193,7 @@ def login(cursor):
 
     loginType = ""
     user, artist = False, False
-    while success==False and valid==True:
-
+    while success == True and valid == False:
         uidSuccess = False
         print("Please enter your User ID, or press enter to exit:")
         while uidSuccess == False and valid == True:
@@ -207,7 +225,6 @@ def login(cursor):
                     else:
                         print("Invalid input. Please try again.")
 
-
                 break
 
         pwdSuccess = False
@@ -220,8 +237,8 @@ def login(cursor):
         if pwdSuccess == True:
             break
 
-
     return valid, uid, loginType
+
 
 ############################## END OF LOGIN ###############################
 
@@ -234,7 +251,7 @@ def addSong(artist):
     exist we insert it, and then request an input about whom the features are, once provided do a for loop and add
     every feature Make sure to confirm that is either added in or exists"""
 
-    #TO DO: check if it works
+    # TODO: check if it works
 
     connection, cursor = connect(path)
 
@@ -313,8 +330,7 @@ def topListen(artist):
 
 
 def artist(artist):
-    """TO DO: check if it works,
-    add a way to logout"""
+    """TODO: check if it works, add a way to logout"""
     # artist is an aid of the user who logged in, used to check if a song exists or not
     connection, cursor = connect(path)
     print(
@@ -329,6 +345,7 @@ def artist(artist):
 
 
         if userInput != "s" and userInput != "f" and userInput != 'l' and userInput != 'e':
+
             print("Invalid input. Please try again.")
             userInput = input("> ")
             userInput = userInput.lower().strip()
@@ -356,7 +373,7 @@ def artist(artist):
 
 ############################## USER ###############################
 def startSess():
-    """TO DO: Check if it works"""
+    """TODO: Check if it works"""
 
     connection, cursor = connect(path)
 
@@ -379,7 +396,7 @@ def startSess():
 
 
 def endSess(sessNo):
-    """TO DO: Check if it works"""
+    """TODO: Check if it works"""
 
     connection, cursor = connect(path)
     q = '''INSERT INTO sessions(end)
@@ -392,7 +409,7 @@ def endSess(sessNo):
 
 
 def orderByKW(arr, keys):
-    """TO DO: order the tuples so that the one with the most matched keywords is at the top of the list
+    """TODO: order the tuples so that the one with the most matched keywords is at the top of the list
     RETURN THE LIST """
     # arr is the tuple, keys is the keyword, order DESC with the top
     # most array being the one with the most keywords matched
@@ -401,9 +418,11 @@ def orderByKW(arr, keys):
 
 
 def songInfo(song):
+
     """ Finish the query """
 
     # get artist name, sid, title and duration + any playlist the song is in
+
     connection, cursor = connect(path)
     q = '''SELECT a.name, s.sid, s.title, s.duration, pl.title 
     FROM artists a, perform pf, songs s, playlists pl, plinclude pli
@@ -418,8 +437,10 @@ def songInfo(song):
         print(info)
 
 
+
 def addToPlaylist(sessNo, userInput, user):
     connection, cursor = connect(path)
+    #todo: just pass the cursor, don't do this
 
     q = '''SELECT s.sid 
     FROM songs as s
@@ -687,9 +708,7 @@ def user(user):
     return True
 
 
-
 ############################## END OF USER ###############################
-
 
 
 def main():
@@ -707,27 +726,22 @@ def main():
         initialDone = False
         while initialDone == False and quitProgram == False:
 
-
             logReg = introLoop()
             if logReg == 'r':
-                register()
-                initialDone = True
+                valid, uid = register()
+                if valid:
+                    initialDone = True
             elif logReg == 'l':
                 valid, uid, userTitle = login(cursor)
-
-                if valid == True:
-
+                if valid:
                     initialDone = True
-
 
             elif logReg == 'q':
                 quitProgram = True
                 print("Thank you.")
                 break
 
-
         sessionDone = False
-
 
         while sessionDone == False and quitProgram == False:
 
