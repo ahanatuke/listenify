@@ -5,6 +5,7 @@
 
 
 from audioop import add
+from logging import exception
 import sqlite3
 import getpass
 
@@ -81,9 +82,9 @@ def regSuccess(id, cursor):
         return False
 
 
-def register():
+def register(cursor):
     valid = True
-    connection, cursor = connect(path)
+    #connection, cursor = connect(path)
     q = '''SELECT *
     FROM users
     '''
@@ -133,6 +134,9 @@ def register():
 ############################## END OF REGISTER ###############################
 
 
+
+############################## LOGIN ###############################
+
 def idCheck(id, cursor):
     user = False
     artist = False
@@ -171,7 +175,6 @@ def artistPwd(id, cursor):
             print("Incorrect password: please try again or press enter to exit.")
 
 
-############################## LOGIN ###############################
 def endProg(): 
     userInput = input("Would you like to close the program? [Y/N]\n> ")
     userInput = userInput.lower().strip()
@@ -244,7 +247,7 @@ def login(cursor):
 
 
 ############################## ARTIST ###############################
-def addSong(artist):
+def addSong(artist, cursor, connection):
     """CONCEPT: ask for title and duration as inputs get all songs and create a new sid by adding length of all songs
     + 1 from there see if we can select a song from the input provided by the artist a song provided by the artist
     should be unique, and therefore if we check the len of songExist we should get a len of 0 If the song doesn't
@@ -252,8 +255,6 @@ def addSong(artist):
     every feature Make sure to confirm that is either added in or exists"""
 
     # TODO: check if it works
-
-    connection, cursor = connect(path)
 
     # get all songs and get len
     q = '''SELECT *
@@ -302,7 +303,7 @@ def addSong(artist):
     return
 
 
-def topListen(artist):
+def topListen(artist,  cursor, connection):
     connection, cursor = connect(path)
     q = '''SELECT u.uid
     FROM
@@ -350,9 +351,9 @@ def artist(artist):
             userInput = input("> ")
             userInput = userInput.lower().strip()
         elif userInput == 's':
-            addSong(artist)
+            addSong(artist, cursor, connection)
         elif userInput == 'f':
-            topListen(artist)
+            topListen(artist, cursor, connection)
         elif userInput == 'l':
             userInput = input("Are you sure you want to logout? [Y/N]\n> ").lower().strip()
             if userInput == 'y':
@@ -372,10 +373,8 @@ def artist(artist):
 
 
 ############################## USER ###############################
-def startSess():
+def startSess(cursor, connection):
     """TODO: Check if it works"""
-
-    connection, cursor = connect(path)
 
     # get all sessions and add 1 to get a next sno
     q = '''SELECT *
@@ -395,7 +394,7 @@ def startSess():
     return newSession
 
 
-def endSess(sessNo):
+def endSess(sessNo, cursor, connection):
     """TODO: Check if it works"""
 
     connection, cursor = connect(path)
@@ -417,10 +416,10 @@ def orderByKW(arr, keys):
     return
 
 
-def songInfo(song):
-
+def songInfo(song, cursor, connection):
+    #song = sid
     """ Finish the query """
-
+    
     # get artist name, sid, title and duration + any playlist the song is in
 
     connection, cursor = connect(path)
@@ -438,7 +437,7 @@ def songInfo(song):
 
 
 
-def addToPlaylist(sessNo, userInput, user):
+def addToPlaylist(sessNo, userInput, user, cursor, connection):
     connection, cursor = connect(path)
     #todo: just pass the cursor, don't do this
 
@@ -483,26 +482,94 @@ def addToPlaylist(sessNo, userInput, user):
         
     return
 
-def displayPlaylist():
-    connection, cursor = connect(path)
+def displayPlaylist(plID, cursor, connection):
+    
     q = '''SELECT s.sid, s.title, s.duration
                 FROM playlists as p, songs as s, plinclude as pl
-                WHERE  p.pid = pl.pid AND songs.sid = pl.sid
+                WHERE  p.pid = pl.pid AND songs.sid = pl.sid AND p.pid = ?
                 '''
-    cursor.execute(q)
+    cursor.execute(q, (plID))
     pSongs = cursor.fetchall()
     connection.commit()
+    index = 0
+    for song in pSongs: 
+        print(str(index)+'.', song)
+        index += 1
+    
+    print("Select a song number from 0 to "+str(index)+"." )
+    userInput = input("> ")
+    check = True
+    while(check):
+        try:
+            uI = int(userInput)
+            if uI > index or uI < 0:
+                raise exception
+            check = False
+        except:
+            print("Invalid number, please try again")
+            userInput = input("> ")
+    
 
-    for song in pSongs:
-        print(song)
+    
 
 def goDown(allMatchingL, index):
     for i in range(len(allMatchingL) - index):
         if  i >= 5 or allMatchingL[index] == None:
-            return
+            return index
         else:
             print(allMatchingL[index])
             index += 1
+    return index    
+
+def selectSong(sid,cursor, connection):
+    print(
+    "Enter 'I' for the song information\nEnter 'L' to listen to the song\nEnter 'A' to add to a "
+    "playlist\nHit ENTER to leave the selected song")
+    uInput = input("> ")
+    uInput = uInput.lower().strip()
+
+    # set up a while loop here
+    if uInput == 'i':
+        
+        #FIRST ARG IS SONG, RETRIEVE THE SONG FIRST 
+        songInfo(sid, cursor, connection)
+    elif uInput == 'L':
+        '''a listening event is recorded within the current session of the user (if a session has already 
+        started for the user) or within a new session (if not). When starting a new session, follow the 
+        steps given for starting a session. A listening event is recorded by either inserting a row to 
+        table listen or increasing the listen count in this table by 1 '''
+
+        q = '''SELECT s.sid 
+        FROM songs as s
+        WHERE s.sid = ?'''
+        cursor.execute(q, sid)
+        song = cursor.fetchone()
+        connection.commit()
+
+        if sessionStarted:
+            q = '''UPDATE listen
+            SET listen.count = listen.count + 1
+            WHERE listen.uid = ? AND listen.sno = ? AND listen.sid = ?'''
+            cursor.execute(q, (user, sessNo, song[0],))
+            connection.commit()
+        else:
+            sessNo = startSess()
+            sessionStarted = True
+            q = '''INSERT INTO listen
+            VALUES(?, ?, ?, ?)'''
+            cursor.execute(q, (user, sessNo, sid, 1,))
+            connection.commit()             
+
+    elif uInput == 'a':
+        '''When adding a song to a playlist, the song can be added to an existing playlist owned by the 
+        user (if any) or to a new playlist. When it is added to a new playlist, a new playlist should be 
+        created with a unique id (created by your system) and the uid set to the id of the user and a 
+        title should be obtained from input. '''
+
+        addToPlaylist(sessNo, sid, user)
+    else:
+        print("Invalid input. Try again.")
+    return
 
 def user(user):
     """LOTS TO DO:
@@ -520,7 +587,7 @@ def user(user):
         userInput = userInput.lower().strip()
 
         if userInput == 's':
-            sessNo = startSess()
+            sessNo = startSess(cursor, connection)
             sessionStarted = True
         elif userInput == 'p':
             # " user should be able to provide one or more unique keywords,"
@@ -597,63 +664,18 @@ def user(user):
 
                 # focus on getting song1 to see what the user inputs is a song or a playlist
                 elif userInput[0] == 'song' and int(userInput[1]) > 0:
-                    print(
-                        "Enter 'I' for the song information\nEnter 'L' to listen to the song\nEnter 'A' to add to a "
-                        "playlist\nHit ENTER to leave the selected song")
-                    uInput = input("> ")
-                    uInput = uInput.lower().strip()
-
-                    # set up a while loop here
-                    if uInput == 'i':
-                        songInfo()
-                    elif uInput == 'L':
-                        '''a listening event is recorded within the current session of the user (if a session has already 
-                        started for the user) or within a new session (if not). When starting a new session, follow the 
-                        steps given for starting a session. A listening event is recorded by either inserting a row to 
-                        table listen or increasing the listen count in this table by 1 '''
-
-                        q = '''SELECT s.sid 
-                        FROM songs as s
-                        WHERE s.sid = ?'''
-                        cursor.execute(q, userInput[1])
-                        sid = cursor.fetchone()
-                        connection.commit()
-
-                        if sessionStarted:
-                            q = '''UPDATE listen
-                            SET listen.count = listen.count + 1
-                            WHERE listen.uid = ? AND listen.sno = ? AND listen.sid = ?'''
-                            cursor.execute(q, (user, sessNo, sid[0],))
-                            connection.commit()
-                        else:
-                            sessNo = startSess()
-                            sessionStarted = True
-                            q = '''INSERT INTO listen
-                            VALUES(?, ?, ?, ?)'''
-                            cursor.execute(q, (user, sessNo, sid, 1,))
-                            connection.commit()             
-
-                    elif uInput == 'a':
-                        '''When adding a song to a playlist, the song can be added to an existing playlist owned by the 
-                        user (if any) or to a new playlist. When it is added to a new playlist, a new playlist should be 
-                        created with a unique id (created by your system) and the uid set to the id of the user and a 
-                        title should be obtained from input. '''
-
-                        addToPlaylist(sessNo, userInput[1], user)
-                    elif uInput == '':
-                        break
-                    else:
-                        print("Invalid input. Try again.")
+                    selectSong(userInput[1], cursor, connection)
 
 
                 elif userInput[0] == 'playlist' and int(userInput[1]) > 0:
-                    displayPlaylist()
+                    #GET PLAYLIST ID
+                    displayPlaylist(playlistID, cursor, connection)
                     
                 elif userInput[0] == 'd':
                     # while index hasn't reached the end or over the array
                     # print the next 5 and ask again
                     
-                    index = goDown(allMatchingL, index)
+                    index = goDown(allMatchingL, index, cursor, connection)
 
 
         elif userInput == 'a':
@@ -686,7 +708,7 @@ def user(user):
             orderedList = orderByKW(allMatching, keyWords)
 
         elif userInput == 'd':
-            endSess(sessNo)
+            endSess(sessNo, cursor, connection)
             sessionStarted = False
             
         elif userInput == 'l':
@@ -728,11 +750,11 @@ def main():
 
             logReg = introLoop()
             if logReg == 'r':
-                valid, uid = register()
+                valid, uid = register(cursor)
                 if valid:
                     initialDone = True
             elif logReg == 'l':
-                valid, uid, userTitle = login(cursor)
+                valid, id, userTitle = login(cursor)
                 if valid:
                     initialDone = True
 
