@@ -400,22 +400,23 @@ def orderByKW(arr, keys):
     return
 
 
-def songInfo():
+def songInfo(song):
     """ Finish the query """
 
     # get artist name, sid, title and duration + any playlist the song is in
     connection, cursor = connect(path)
-    q = '''SELECT
-    FROM
-    WHERE'''
-    cursor.execute(q)
+    q = '''SELECT a.name, s.sid, s.title, s.duration, pl.title 
+    FROM artists a, perform pf, songs s, playlists pl, plinclude pli
+    WHERE a.aid = pf.aid
+    AND pf.sid = ?
+    OR (pli.sid = ?)'''
+    cursor.execute(q, (song,))
     songInfo = cursor.fetchone()
     connection.commit()
 
     for info in songInfo:
         print(info)
 
-    return
 
 def addToPlaylist(sessNo, userInput, user):
     connection, cursor = connect(path)
@@ -488,174 +489,201 @@ def user(user):
     """
     # user is an uid of the user to logged in
     connection, cursor = connect(path)
-
-    print(
-        "To start a session enter 'S'\n To search for a song or playlist enter 'P'\nEnter 'A' to search for an "
+    sessionStarted = False
+    loggedIn = True
+    while(loggedIn):
+        print(
+        "To start a session enter 'S'\nTo search for a song or playlist enter 'P'\nEnter 'A' to search for an "
         "artist\nTo end the session enter 'D'\nTo logout enter 'L'\nTo exit the program press 'E'  ")
-    userInput = input("> ")
-    userInput = userInput.lower().strip()
+        userInput = input("> ")
+        userInput = userInput.lower().strip()
 
-    if userInput == 's':
-        sessNo = startSess()
-    elif userInput == 'p':
-        # " user should be able to provide one or more unique keywords,"
-        # FOCUS ON: Either having it be one input split into an array or requesting multiple inputs for keywords (probably the best????)
-        # must indicate if playlist or song is displayed
+        if userInput == 's':
+            sessNo = startSess()
+            sessionStarted = True
+        elif userInput == 'p':
+            # " user should be able to provide one or more unique keywords,"
+            # FOCUS ON: Either having it be one input split into an array or requesting multiple inputs for keywords (probably the best????)
+            # must indicate if playlist or song is displayed
 
-        userInput = input("Please enter keywords to search for playlists or songs by spaces only.\n>")
+            userInput = input("Please enter keywords to search for playlists or songs by spaces only.\n>")
 
-        # get the keywords into an array
-        keyWords = userInput.split()
+            # get the keywords into an array
+            keyWords = userInput.split()
 
-        '''*** TO DO: get the rows, even if they're unordered thats okay we'll sort it in orderbyKW() *** '''
-        # get all matching rows from keywords
-        q = ''' 
-        SELECT s.sid, s.title, s.duration
-        FROM songs as s
-        WHERE (s.sid LIKE ? AND s.title LIKE ?) OR s.sid LIKE ? OR s.title LIKE ? 
-        '''
-        cursor.execute(q, (keyWords[0], keyWords[1], keyWords[0], keyWords[1],))
-        allMatching = cursor.fetchall()
-        connection.commit()
+            '''*** TO DO: get the rows, even if they're unordered thats okay we'll sort it in orderbyKW() *** '''
+            # get all matching rows from keywords
+            q = ''' 
+            SELECT s.sid, s.title, s.duration
+            FROM songs as s
+            WHERE (s.sid LIKE ? AND s.title LIKE ?) OR s.sid LIKE ? OR s.title LIKE ? 
+            '''
+            cursor.execute(q, (keyWords[0], keyWords[1], keyWords[0], keyWords[1],))
+            allMatching = cursor.fetchall()
+            connection.commit()
 
-        
+            
 
-        q = ''' 
-        SELECT s.sid, s.title, s.duration
-        FROM songs as s
-        WHERE (s.sid LIKE ? AND s.title LIKE ?) OR s.sid LIKE ? OR s.title LIKE ? 
-        '''
-        cursor.execute(q, (keyWords[0], keyWords[1], keyWords[0], keyWords[1],))
-        allMatching = allMatching + cursor.fetchall()
-        connection.commit()
+            q = ''' 
+            SELECT s.sid, s.title, s.duration
+            FROM songs as s
+            WHERE (s.sid LIKE ? AND s.title LIKE ?) OR s.sid LIKE ? OR s.title LIKE ? 
+            '''
+            cursor.execute(q, (keyWords[0], keyWords[1], keyWords[0], keyWords[1],))
+            allMatching = allMatching + cursor.fetchall()
+            connection.commit()
 
-        allMatchingL = list(allMatching)
+            allMatchingL = list(allMatching)
 
 
-        '''TO DO: 
-        ***FIRST: order the tuples by what has the most keywords
-        SECOND: print the 5 out
-        THIRD: ask what the user wants to do
-        
-        ***
-        '''
-        orderedList = orderByKW(allMatchingL, keyWords)
+            '''TO DO: 
+            ***FIRST: order the tuples by what has the most keywords
+            SECOND: print the 5 out
+            THIRD: ask what the user wants to do
+            
+            ***
+            '''
+            allMatchingL = orderByKW(allMatchingL, keyWords)
 
-        # print the first 5
-        index = 0
+            # print the first 5
+            index = 0
 
-        #TO DO: Switch this when we finish orderByKW
-        for i in range(len(allMatchingL)):
-            if i >= 5:
-                break
-            else:
-                print(allMatchingL[i])
-                index += 1
-
-        ''' *** TO DO: find a way to distinguish btwn playlist and song and how to enter a specific one*** 
-        one thing to note is that neither song or playlist has a letter to distinguish itself as an id
-                i.e. sid of wavin flag would be 1 and not s1
-        ways to solve this: maybe look into finding a way within the for loop to attach an s or a p to the id?
-        only playlists have users, and only song have duration, look into that or other ways to distinguish whats a playlist. 
-       '''
-        
-        check = True
-        while (check):
-            print(
-            "Enter the id of a playlist or song you want to select as (playlist/song [number])\nEnter 'N' to go to "
-            "the next 5\Hit 'ENTER' to leave")
-            userInput = input("> ")
-            userInput = userInput.lower().strip()
-            # leave
-            if userInput[0] == '':
-                check = False
-
-            # focus on getting song1 to see what the user inputs is a song or a playlist
-            elif userInput[0] == 'song' and int(userInput[1]) > 0:
-                print(
-                    "Enter 'I' for the song information\nEnter 'L' to listen to the song\nEnter 'A' to add to a "
-                    "playlist\nHit ENTER to leave the selected song")
-                uInput = input("> ")
-                uInput = uInput.lower().strip()
-
-                # set up a while loop here
-                if uInput == 'i':
-                    songInfo()
-                elif uInput == 'L':
-                    '''a listening event is recorded within the current session of the user (if a session has already 
-                    started for the user) or within a new session (if not). When starting a new session, follow the 
-                    steps given for starting a session. A listening event is recorded by either inserting a row to 
-                    table listen or increasing the listen count in this table by 1 '''
-
-                    print('fkn do something')
-                elif uInput == 'a':
-                    '''When adding a song to a playlist, the song can be added to an existing playlist owned by the 
-                    user (if any) or to a new playlist. When it is added to a new playlist, a new playlist should be 
-                    created with a unique id (created by your system) and the uid set to the id of the user and a 
-                    title should be obtained from input. '''
-
-                    addToPlaylist(sessNo, userInput[1], user)
-                elif uInput == '':
+            #TO DO: Switch this when we finish orderByKW
+            for i in range(len(allMatchingL)):
+                if i >= 5:
                     break
                 else:
-                    print("Invalid input. Try again.")
+                    print(allMatchingL[i])
+                    index += 1
 
-
-            elif userInput[0] == 'playlist' and int(userInput[1]) > 0:
-                displayPlaylist()
-                
-            elif userInput[0] == 'd':
-                # while index hasn't reached the end or over the array
-                # print the next 5 and ask again
-                
-                index = goDown(allMatchingL, index)
-
-
-    elif userInput == 'a':
-        ''' ***TO DO: find artist by keywords. 
-        
-        The user should be able to provide one or more unique keywords, and the system should retrieve all artists 
-        that have any of those keywords either in their names or in the title of a song they have performed. For each 
-        matching artist, the name, the nationality and the number of songs performed are returned. The result should 
-        be ordered based on the number of matching keywords with artists that match the largest number of keywords 
-        listed on top. If there are more than 5 matching artists, at most 5 matches will be shown at a time, 
-        letting the user either select a match for more information or see the rest of the matches in a paginated 
-        downward format. The user should be able to select an artist and see the id, the title and the duration of 
-        all their songs. Any time a list of songs are displayed, the user should be able to select a song and perform 
-        a song action as discussed next. 
-        
-        *** '''
-
-        userInput = input("Please enter keywords to search for an artist by spaces only.\n>")
-
-        keyWords = userInput.split()
-        q = ''' 
-        SELECT s.sid, s.title, s.duration
-        FROM songs as s
-        WHERE (s.sid LIKE ? AND s.title LIKE ?) OR s.sid LIKE ? OR s.title LIKE ? 
+            ''' *** TO DO: find a way to distinguish btwn playlist and song and how to enter a specific one*** 
+            one thing to note is that neither song or playlist has a letter to distinguish itself as an id
+                    i.e. sid of wavin flag would be 1 and not s1
+            ways to solve this: maybe look into finding a way within the for loop to attach an s or a p to the id?
+            only playlists have users, and only song have duration, look into that or other ways to distinguish whats a playlist. 
         '''
-        cursor.execute(q, (keyWords[0], keyWords[1], keyWords[0], keyWords[1],))
-        allMatching = cursor.fetchall()
-        connection.commit()
-
-        orderedList = orderByKW(allMatching, keyWords)
-
-    elif userInput == 'd':
-        endSess(sessNo)
-        
-    elif userInput == 'l':
-        check = True
-        while check: 
-            userInput = input("Are you sure you want to logout? [Y/N]\n> ").lower().strip()
-            if userInput == 'y':
-                return True
-            elif userInput == 'n':
+            
+            check = True
+            while (check):
                 print(
-                "To start a session enter 'S'\n To search for a song or playlist enter 'P'\nEnter 'A' to search for an "
-                "artist\nTo end the session enter 'D'\nTo logout enter 'L'\nTo exit the program press 'E'  ")
-                userInput = input("> ").lower().split()
-            else:
-                print("Invalid input, try again.")
+                "Enter the id of a playlist or song you want to select as (playlist/song [number])\nEnter 'N' to go to "
+                "the next 5\Hit 'ENTER' to leave")
+                userInput = input("> ")
+                userInput = userInput.lower().strip()
+                # leave
+                if userInput[0] == '':
+                    check = False
+
+                # focus on getting song1 to see what the user inputs is a song or a playlist
+                elif userInput[0] == 'song' and int(userInput[1]) > 0:
+                    print(
+                        "Enter 'I' for the song information\nEnter 'L' to listen to the song\nEnter 'A' to add to a "
+                        "playlist\nHit ENTER to leave the selected song")
+                    uInput = input("> ")
+                    uInput = uInput.lower().strip()
+
+                    # set up a while loop here
+                    if uInput == 'i':
+                        songInfo()
+                    elif uInput == 'L':
+                        '''a listening event is recorded within the current session of the user (if a session has already 
+                        started for the user) or within a new session (if not). When starting a new session, follow the 
+                        steps given for starting a session. A listening event is recorded by either inserting a row to 
+                        table listen or increasing the listen count in this table by 1 '''
+
+                        q = '''SELECT s.sid 
+                        FROM songs as s
+                        WHERE s.sid = ?'''
+                        cursor.execute(q, userInput[1])
+                        sid = cursor.fetchone()
+                        connection.commit()
+
+                        if sessionStarted:
+                            q = '''UPDATE listen
+                            SET listen.count = listen.count + 1
+                            WHERE listen.uid = ? AND listen.sno = ? AND listen.sid = ?'''
+                            cursor.execute(q, (user, sessNo, sid[0],))
+                            connection.commit()
+                        else:
+                            sessNo = startSess()
+                            sessionStarted = True
+                            q = '''INSERT INTO listen
+                            VALUES(?, ?, ?, ?)'''
+                            cursor.execute(q, (user, sessNo, sid, 1,))
+                            connection.commit()             
+
+                    elif uInput == 'a':
+                        '''When adding a song to a playlist, the song can be added to an existing playlist owned by the 
+                        user (if any) or to a new playlist. When it is added to a new playlist, a new playlist should be 
+                        created with a unique id (created by your system) and the uid set to the id of the user and a 
+                        title should be obtained from input. '''
+
+                        addToPlaylist(sessNo, userInput[1], user)
+                    elif uInput == '':
+                        break
+                    else:
+                        print("Invalid input. Try again.")
+
+
+                elif userInput[0] == 'playlist' and int(userInput[1]) > 0:
+                    displayPlaylist()
+                    
+                elif userInput[0] == 'd':
+                    # while index hasn't reached the end or over the array
+                    # print the next 5 and ask again
+                    
+                    index = goDown(allMatchingL, index)
+
+
+        elif userInput == 'a':
+            ''' ***TO DO: find artist by keywords. 
+            
+            The user should be able to provide one or more unique keywords, and the system should retrieve all artists 
+            that have any of those keywords either in their names or in the title of a song they have performed. For each 
+            matching artist, the name, the nationality and the number of songs performed are returned. The result should 
+            be ordered based on the number of matching keywords with artists that match the largest number of keywords 
+            listed on top. If there are more than 5 matching artists, at most 5 matches will be shown at a time, 
+            letting the user either select a match for more information or see the rest of the matches in a paginated 
+            downward format. The user should be able to select an artist and see the id, the title and the duration of 
+            all their songs. Any time a list of songs are displayed, the user should be able to select a song and perform 
+            a song action as discussed next. 
+            
+            *** '''
+
+            userInput = input("Please enter keywords to search for an artist by spaces only.\n>")
+
+            keyWords = userInput.split()
+            q = ''' 
+            SELECT s.sid, s.title, s.duration
+            FROM songs as s
+            WHERE (s.sid LIKE ? AND s.title LIKE ?) OR s.sid LIKE ? OR s.title LIKE ? 
+            '''
+            cursor.execute(q, (keyWords[0], keyWords[1], keyWords[0], keyWords[1],))
+            allMatching = cursor.fetchall()
+            connection.commit()
+
+            orderedList = orderByKW(allMatching, keyWords)
+
+        elif userInput == 'd':
+            endSess(sessNo)
+            sessionStarted = False
+            
+        elif userInput == 'l':
+            check = True
+            while check: 
+                userInput = input("Are you sure you want to logout? [Y/N]\n> ").lower().strip()
+                if userInput == 'y':
+                    loggedIn = False
+                    return True
+                elif userInput == 'n':
+                    print(
+                    "To start a session enter 'S'\n To search for a song or playlist enter 'P'\nEnter 'A' to search for an "
+                    "artist\nTo end the session enter 'D'\nTo logout enter 'L'\nTo exit the program press 'E'  ")
+                    userInput = input("> ").lower().split()
+                else:
+                    print("Invalid input, try again.")
+        elif userInput == 'e':
+            endProg()
     return True
 
 
