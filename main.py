@@ -291,11 +291,15 @@ def addSong(artist):
 
 
 def topListen(artist):
+    # TODO: theoretically works -- first query should be getting the longest listen time, needs testing
     connection, cursor = connect(path)
-    q = '''SELECT u.uid
-    FROM
-    WHERE
-    ORDER BY u.uid DESC
+    q = '''SELECT DISTINCT u.uid, a.name
+    FROM users u, sessions ses, listen l, artists a, perform p, songs s
+    WHERE ses.uid = l.uid
+        AND l.sid = p.sid
+        AND p.aid = a.aid
+        AND a.aid = 'a1'
+    ORDER BY l.cnt DESC
     LIMIT 3
     '''
     cursor.execute(q)
@@ -304,10 +308,18 @@ def topListen(artist):
     for user in top3U:
         print(user)
 
-    q = '''SELECT p.pid
-    FROM
-    WHERE
-    ORDER BY p.pid DESC
+    q = '''SELECT DISTINCT pl.title, a.name
+    FROM playlists pl, artists a
+    WHERE (SELECT DISTINCT MAX(s.sid)
+        FROM perform p,
+                songs s,
+                plinclude pi, 
+                playlists pl2
+        WHERE a.aid = 'a1'
+             AND p.sid = s.sid
+            AND pi.sid = s.sid
+            AND a.aid = p.aid
+        ORDER BY pl2.pid DESC)
     LIMIT 3
     '''
     cursor.execute(q)
