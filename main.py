@@ -162,7 +162,7 @@ def artistPwd(id, cursor):
 
 ############################## LOGIN ###############################
 def login(cursor):
-    '''Login: nested loop unfortunately ready for this to run in O(n^2)?'''
+    """Login: nested loop unfortunately ready for this to run in O(n^2)?"""
 
     success = False
     valid = True
@@ -229,7 +229,7 @@ def addSong(artist):
     exist we insert it, and then request an input about whom the features are, once provided do a for loop and add
     every feature Make sure to confirm that is either added in or exists"""
 
-    # TO DO: check if it works
+    # TODO: check if it works
 
     connection, cursor = connect(path)
 
@@ -308,7 +308,7 @@ def topListen(artist):
 
 
 def artist(artist):
-    """TO DO: check if it works,
+    """TODO: check if it works,
     add a way to logout"""
     # artist is an aid of the user who logged in, used to check if a song exists or not
     connection, cursor = connect(path)
@@ -348,7 +348,7 @@ def artist(artist):
 
 ############################## USER ###############################
 def startSess():
-    """TO DO: Check if it works"""
+    """TODO: Check if it works"""
 
     connection, cursor = connect(path)
 
@@ -371,7 +371,7 @@ def startSess():
 
 
 def endSess(sessNo):
-    """TO DO: Check if it works"""
+    """TODO: Check if it works"""
 
     connection, cursor = connect(path)
     q = '''INSERT INTO sessions(end)
@@ -384,7 +384,7 @@ def endSess(sessNo):
 
 
 def orderByKW(arr, keys):
-    """TO DO: order the tuples so that the one with the most matched keywords is at the top of the list
+    """TODO: order the tuples so that the one with the most matched keywords is at the top of the list
     RETURN THE LIST """
     # arr is the tuple, keys is the keyword, order DESC with the top
     # most array being the one with the most keywords matched
@@ -410,7 +410,7 @@ def songInfo():
 
 
 def user(user):
-    """LOTS TO DO:
+    """LOTS TODO: finish
     ***___*** => things to start on
 
     """
