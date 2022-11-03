@@ -480,7 +480,6 @@ def songInfo(song, cursor, connection):
 
 
 def addToPlaylist(sessNo, userInput, user, cursor, connection): 
-    connection, cursor = connect(path)
     #todo: just pass the cursor, don't do this
 
     q = '''SELECT s.sid 
@@ -551,17 +550,81 @@ def displayPlaylist(plID, cursor, connection):
             print("Invalid number, please try again")
             userInput = input("> ")
     
+def orderByKWP(cursor, keyWords):
+    songResults = []
+    playlistResults = []
+    i=0
+    for word in keyWords:
+        cursor.execute("""SELECT s.sid, s.title, s.duration
+                            FROM songs as s
+                            WHERE s.title LIKE ? """, ("%" + word.strip().lower() + "%",))
 
+
+        matchedSongs = cursor.fetchall()
+        for song in matchedSongs:
+            i += 1
+            song = list(song)
+            inMatched = False
+            if len(songResults)==0:
+                result = [song, 1, 0,i]
+                songResults.append(result)
+            else:
+                for result in songResults:
+                    if result == song:
+                        result[1] += 1
+                        inMatched = True
+                        break
+
+                if inMatched == False:
+                    result = [song, 1, 0,i]
+                    songResults.append(result)
+
+
+        cursor.execute("""SELECT p.pid, p.title
+                            FROM playlists as p
+                            WHERE p.title LIKE ? """, ("%" + word.strip().lower() + "%",))
+        #todo get total duration
+
+        matchedPlaylists = cursor.fetchall()
+        for playlist in matchedPlaylists:
+            i += 1
+            
+            playlist = list(playlist)
+            q = '''SELECT SUM(s.duration)
+            FROM songs as s, plinclude as pl, playlists as p 
+            WHERE p.pid = ? AND pl.pid = ? and s.sid = pl.sid  
+            '''
+            cursor.execute(q, (playlist[0], playlist[0],))
+            
+            sum = cursor.fetchone()
+            
+            playlist.append(sum)
+            
+            inMatched = False
+            if len(playlistResults)==0:
+                result = [playlist, 1, 1, i]
+                playlistResults.append(result)
+            else:
+                for result in playlistResults:
+                    if result == playlist:
+                        result[1] += 1
+                        inMatched = True
+                        break
+
+                if inMatched == False:
+                    result = [playlist, 1, 1, i]
+                    playlistResults.append(result)
+
+    for playlist in playlistResults:
+        songResults.append(playlist)
+
+    results = sorted(songResults, key=lambda p: p[1])
+    items = []
+    for i in range(len(songResults)):
+        items.append(results[i][0])
     
+    return results, items
 
-def goDown(allMatchingL, index):
-    for i in range(len(allMatchingL) - index):
-        if  i >= 5 or allMatchingL[index] == None:
-            return index
-        else:
-            print(allMatchingL[index])
-            index += 1
-    return index    
 
 def selectSong(sid,cursor, connection):
     print(
@@ -644,70 +707,9 @@ def user(user):
             # get all matching rows from keywords
             # any not all
 
-            songResults = []
-            playlistResults = []
-            i=0
-            for word in keyWords:
-                cursor.execute("""SELECT s.sid, s.title, s.duration
-                                    FROM songs as s
-                                    WHERE s.title LIKE ? """, ("%" + word.strip().lower() + "%",))
+            results, items = orderByKWP(cursor, keyWords)
 
 
-                matchedSongs = cursor.fetchall()
-                for song in matchedSongs:
-                    i += 1
-                    print(i)
-                    song = list(song)
-                    inMatched = False
-                    if len(songResults)==0:
-                        result = [song, 1, 0,i]
-                        songResults.append(result)
-                    else:
-                        for result in songResults:
-                            if result == song:
-                                result[1] += 1
-                                inMatched = True
-                                break
-
-                        if inMatched == False:
-                            result = [song, 1, 0,i]
-                            songResults.append(result)
-
-
-                cursor.execute("""SELECT p.pid, p.title
-                                    FROM playlists as p
-                                    WHERE p.title LIKE ? """, ("%" + word.strip().lower() + "%",))
-                #todo get total duration
-
-                matchedPlaylists = cursor.fetchall()
-                for playlist in matchedPlaylists:
-                    i += 1
-
-                    playlist = list(playlist)
-                    inMatched = False
-                    if len(playlistResults)==0:
-                        result = [playlist, 1, 1, i]
-                        playlistResults.append(result)
-                    else:
-                        for result in playlistResults:
-                            if result == playlist:
-                                result[1] += 1
-                                inMatched = True
-                                break
-
-                        if inMatched == False:
-                            result = [playlist, 1, 1, i]
-                            playlistResults.append(result)
-
-            for playlist in playlistResults:
-                songResults.append(playlist)
-
-            results = sorted(songResults, key=lambda p: p[1])
-
-            items = []
-            for i in range(len(songResults)):
-                items.append(results[i][0])
-            print(items)
 
             selectedItem = utilities.paginate(items)
             if selectedItem == None:
@@ -752,8 +754,7 @@ def user(user):
                     # while index hasn't reached the end or over the array
                     # print the next 5 and ask again
                     
-                    index = goDown(allMatchingL, index, cursor, connection)
-
+                   endSess(cursor, connection)
 
         elif userInput == 'a':
             ''' ***TO DO: find artist by keywords. 
