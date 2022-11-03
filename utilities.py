@@ -10,16 +10,20 @@ def paginate(items, num = 5):
         numPages = int(maxIndex/5) + 1
 
     pageNum = 0
+    if (maxIndex+1) < num:
+        num = maxIndex+1
+
     pageIndices = []
-    for i in range(1,num):
+    for i in range(1,num+1):
         pageIndices.append(str(i))
+
 
     print("Enter 'N' to go to the next page. Enter 'P' to go to the previous page.\n"
           "Enter a number from 1 to "+str(num)+" to select that result. Press Enter to quit")
 
     while True:
-        for i in range(0,5):
-            print(items[pageNum + i])
+        for i in range(0,num):
+            print(items[(5*pageNum) + i])
         print("Page " + str(pageNum) +" / " + str(numPages))
 
         while True:
@@ -36,7 +40,7 @@ def paginate(items, num = 5):
                     pageNum += 1
                 break
             elif userInput.strip() in pageIndices:
-                return pageNum + int(userInput.strip())
+                return pageNum + int(userInput.strip()) - 1
             else:
                 print("Invalid input, please try again or press Enter to quit.")
 
