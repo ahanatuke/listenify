@@ -465,8 +465,9 @@ def songInfo(song, cursor, connection):
     FROM artists a, perform pf, songs s, playlists pl, plinclude pli
     WHERE a.aid = pf.aid
     AND pf.sid = ?
-    OR (pli.sid = ?)'''
-    cursor.execute(q, (song,))
+    AND pli.sid = ?
+    AND pli.pid = pl.pid'''
+    cursor.execute(q, (song[0], song[0]))
     songInfo = cursor.fetchone()
     connection.commit()
 
@@ -633,7 +634,11 @@ def displayArtist(cursor, aid):
 
 
 
-def selectSong(sid,cursor, connection):
+
+
+
+
+def selectSong(sid, sessNo, sessionStarted, cursor, connection):
     print(
     "Enter 'I' for the song information\nEnter 'L' to listen to the song\nEnter 'A' to add to a "
     "playlist\nHit ENTER to leave the selected song")
@@ -697,7 +702,7 @@ def user(user):
         "artist\nTo end the session enter 'D'\nTo logout enter 'L'\nTo exit the program press 'E'  ")
         userInput = input("> ")
         userInput = userInput.lower().strip()
-
+        sessNo = 0
         if userInput == 's':
             sessNo = startSess(cursor, connection)
             sessionStarted = True
@@ -724,7 +729,9 @@ def user(user):
                 pass
             elif results[selectedItem][2] == 0:
                 sid = results[selectedItem][0]
-                selectSong(sid, cursor, connection)
+
+                selectSong(sid, sessNo, sessionStarted, cursor, connection)
+
 
             elif results[selectedItem][2] == 1:
                 pid = str(results[selectedItem][0][0])
@@ -865,8 +872,14 @@ def main():
 
     print("By Anya Hanatuke, Alinn Martinez, and Ayaan Jutt\n")
     # todo link database using URL
-    global path
+    #global path
+
+    path = input("Please enter a database\n> ")
+    path = './'+path
+
     connection, cursor = connect(path)
+
+
 
     quitProgram = False
     userTitle = ""
