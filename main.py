@@ -91,6 +91,7 @@ def register():
     while check == False:
 
         if reEnter.lower().strip() == 'n':
+            print("The following information has been discarded:\n" + inputU + "\n" + inputN)
             inputU, inputN, inputP = regInputs(suggestion, cursor)
             break
         elif reEnter.lower().strip() == 'y':
@@ -98,6 +99,7 @@ def register():
             VALUES ((?), (?), (?))'''
             cursor.execute(q, (inputU, inputN, inputP))
             connection.commit()
+            print("Your user information has been saved")
             break
         elif reEnter == "":
             valid = False
