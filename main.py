@@ -3,7 +3,6 @@
     This must be fixed before handing in. """
 # todo fix
 
-from operator import itemgetter
 from audioop import add
 from logging import exception
 import sqlite3
@@ -83,16 +82,14 @@ def regSuccess(id, cursor):
         return False
 
 
-def register(cursor):
+def register(cursor, connection):
     valid = True
-    connection, cursor = connect(path)
     q = '''SELECT *
     FROM users
     '''
     cursor.execute(q)
 
     usersAmount = len(cursor.fetchall())
-    connection.commit()
 
     # this functionality is probably unnecessary and yet, i did it anyway
     usersAmount += 1
@@ -263,8 +260,7 @@ def addSong(artist, cursor, connection):
             FROM songs as s'''
     cursor.execute(q)
     sidNew = len(cursor.fetchall()) + 1
-    connection.commit()
-    
+
     cursor.execute('''SELECT * FROM songs WHERE sid=?''', (sidNew,))
 
     while cursor.fetchone() is not None:
@@ -276,7 +272,7 @@ def addSong(artist, cursor, connection):
     duration = input("Duration (in seconds): ")
     check = True
     while(check):
-        try:    
+        try:
             duration = int(duration)
             if duration < 0:
                 raise Exception
@@ -446,7 +442,6 @@ def startSess(cursor, connection):
 def endSess(sessNo, cursor, connection):
     """TODO: Check if it works"""
 
-    connection, cursor = connect(path)
     q = '''INSERT INTO sessions(end)
     VALUES(datetime('now'))
     WHERE sessions.sno = ?'''
@@ -462,7 +457,7 @@ def endSess(sessNo, cursor, connection):
 def songInfo(song, cursor, connection):
     #song = sid
     """ Finish the query """
-    
+
     # get artist name, sid, title and duration + any playlist the song is in
 
     connection, cursor = connect(path)
@@ -480,7 +475,7 @@ def songInfo(song, cursor, connection):
 
 
 
-def addToPlaylist(sessNo, userInput, user, cursor, connection): 
+def addToPlaylist(sessNo, userInput, user, cursor, connection):
     #todo: just pass the cursor, don't do this
 
     q = '''SELECT s.sid 
@@ -525,7 +520,7 @@ def addToPlaylist(sessNo, userInput, user, cursor, connection):
     return
 
 def displayPlaylist(plID, cursor, connection):
-    
+
     q = '''SELECT s.sid, s.title, s.duration
                 FROM playlists as p, songs as s, plinclude as pl
                 WHERE  p.pid = pl.pid AND songs.sid = pl.sid AND p.pid = ?
@@ -534,10 +529,10 @@ def displayPlaylist(plID, cursor, connection):
     pSongs = cursor.fetchall()
     connection.commit()
     index = 0
-    for song in pSongs: 
+    for song in pSongs:
         print(str(index)+'.', song)
         index += 1
-    
+
     print("Select a song number from 0 to "+str(index)+"." )
     userInput = input("> ")
     check = True
@@ -550,7 +545,7 @@ def displayPlaylist(plID, cursor, connection):
         except:
             print("Invalid number, please try again")
             userInput = input("> ")
-    
+
 def orderByKWP(cursor, keyWords):
     songResults = []
     playlistResults = []
@@ -559,6 +554,62 @@ def orderByKWP(cursor, keyWords):
         cursor.execute("""SELECT s.sid, s.title, s.duration
                             FROM songs as s
                             WHERE s.title LIKE ? """, ("%" + word.strip().lower() + "%",))
+
+    for song in pSongs:
+        print(song)
+
+
+def displayArtist(cursor, aid):
+    q = '''SELECT s.sid, s.title, s.duration
+                FROM songs as s, performs as p
+                WHERE  p.aid = ? AND songs s.sid = p.sid
+                '''
+    cursor.execute(q, (aid,))
+    pSongs = cursor.fetchall()
+
+    for song in pSongs:
+        print(song)
+
+
+
+def user(user):
+    """LOTS TO DO:
+    ***___*** => things to start on
+    """
+    # user is an uid of the user to logged in
+    connection, cursor = connect(path)
+    sessionStarted = False
+    loggedIn = True
+    while(loggedIn):
+        print(
+        "To start a session enter 'S'\nTo search for a song or playlist enter 'P'\nEnter 'A' to search for an "
+        "artist\nTo end the session enter 'D'\nTo logout enter 'L'\nTo exit the program press 'E'  ")
+        userInput = input("> ")
+        userInput = userInput.lower().strip()
+
+        if userInput == 's':
+            sessNo = startSess()
+            sessionStarted = True
+        elif userInput == 'p':
+            # " user should be able to provide one or more unique keywords,"
+            # FOCUS ON: Either having it be one input split into an array or requesting multiple inputs for keywords (probably the best????)
+            # must indicate if playlist or song is displayed
+
+            userInput = input("Please enter keywords to search for playlists or songs by spaces only.\n>")
+
+            # get the keywords into an array
+            keyWords = userInput.split()
+            '''*** TO DO: get the rows, even if they're unordered thats okay we'll sort it in orderbyKW() *** '''
+            # get all matching rows from keywords
+            # any not all
+
+            songResults = []
+            playlistResults = []
+            i=0
+            for word in keyWords:
+                cursor.execute("""SELECT s.sid, s.title, s.duration
+                                    FROM songs as s
+                                    WHERE s.title LIKE ? """, ("%" + word.strip().lower() + "%",))
 
 
         matchedSongs = cursor.fetchall()
@@ -576,9 +627,9 @@ def orderByKWP(cursor, keyWords):
                         inMatched = True
                         break
 
-                if inMatched == False:
-                    result = [song, 1, 0,i]
-                    songResults.append(result)
+                        if inMatched == False:
+                            result = [song, 1, 0,i]
+                            songResults.append(result)
 
 
         cursor.execute("""SELECT p.pid, p.title
@@ -586,46 +637,45 @@ def orderByKWP(cursor, keyWords):
                             WHERE p.title LIKE ? """, ("%" + word.strip().lower() + "%",))
         #todo get total duration
 
-        matchedPlaylists = cursor.fetchall()
-        for playlist in matchedPlaylists:
-            i += 1
-            
-            playlist = list(playlist)
-            q = '''SELECT SUM(s.duration)
-            FROM songs as s, plinclude as pl, playlists as p 
-            WHERE p.pid = ? AND pl.pid = ? and s.sid = pl.sid  
-            '''
-            cursor.execute(q, (playlist[0], playlist[0],))
-            
-            sum = cursor.fetchone()
-            
-            playlist.append(sum)
-            
-            inMatched = False
-            if len(playlistResults)==0:
-                result = [playlist, 1, 1, i]
-                playlistResults.append(result)
-            else:
-                for result in playlistResults:
-                    if result == playlist:
-                        result[1] += 1
-                        inMatched = True
-                        break
+                matchedPlaylists = cursor.fetchall()
+                for playlist in matchedPlaylists:
+                    i += 1
+
+                    playlist = list(playlist)
+                    inMatched = False
+                    if len(playlistResults)==0:
+                        result = [playlist, 1, 1, i]
+                        playlistResults.append(result)
+                    else:
+                        for result in playlistResults:
+                            if result == playlist:
+                                result[1] += 1
+                                inMatched = True
+                                break
 
                 if inMatched == False:
                     result = [playlist, 1, 1, i]
                     playlistResults.append(result)
 
-    for playlist in playlistResults:
-        songResults.append(playlist)
+        for playlist in playlistResults:
+            songResults.append(playlist)
 
     results = sorted(songResults, key=lambda p: p[1])
     items = []
     for i in range(len(songResults)):
         items.append(results[i][0])
-    
+
     return results, items
 
+            if selectedItem == None:
+                #todo fix me make all this a fxn n do a return
+                pass
+            elif results[selectedItem][2] == 0:
+                #todo its a song do the song thing
+                pass
+            elif results[selectedItem][2] == 1:
+                #todo its a playlist do the playlist thing
+                pass
 
 def selectSong(sid,cursor, connection):
     print(
@@ -636,8 +686,8 @@ def selectSong(sid,cursor, connection):
 
     # set up a while loop here
     if uInput == 'i':
-        
-        #FIRST ARG IS SONG, RETRIEVE THE SONG FIRST 
+
+        #FIRST ARG IS SONG, RETRIEVE THE SONG FIRST
         songInfo(sid, cursor, connection)
     elif uInput == 'L':
         '''a listening event is recorded within the current session of the user (if a session has already 
@@ -664,7 +714,7 @@ def selectSong(sid,cursor, connection):
             q = '''INSERT INTO listen
             VALUES(?, ?, ?, ?)'''
             cursor.execute(q, (user, sessNo, sid, 1,))
-            connection.commit()             
+            connection.commit()
 
     elif uInput == 'a':
         '''When adding a song to a playlist, the song can be added to an existing playlist owned by the 
@@ -731,7 +781,7 @@ def user(user):
             ways to solve this: maybe look into finding a way within the for loop to attach an s or a p to the id?
             only playlists have users, and only song have duration, look into that or other ways to distinguish whats a playlist. 
         '''
-            
+
             check = True
             while (check):
                 print(
@@ -821,7 +871,19 @@ def user(user):
                     artist = items[selectedArtist]
                     cursor.execute("""SELECT aid FROM artists WHERE name = ? AND nationality = ?""", (artist[0], artist[1]))
                     aid = cursor.fetchone()
-                    #todo something here
+                    displayArtist(cursor, aid)
+                    print("Enter song id to see more info, or press Enter to quit")
+                    sid = input("> ")
+                    if sid == None:
+                        pass#todo the quit thing
+                    else:
+                        while True:
+                            cursor.execute('''SELECT * FROM song WHERE sid = ?''', (sid,))
+                            if cursor.fetchone() == None:
+                                print("Invalid input, please try again")
+                                sid = input("> ")
+                            else:
+                                Selec
 
 
 
