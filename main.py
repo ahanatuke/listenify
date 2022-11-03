@@ -3,11 +3,12 @@
     This must be fixed before handing in. """
 # todo fix
 
-
+from operator import itemgetter
 from audioop import add
 from logging import exception
 import sqlite3
 import getpass
+import utilities
 
 path = './291_proj'
 
@@ -187,8 +188,7 @@ def endProg():
 
 
 def login(cursor):
-    """Login: nested loop unfortunately ready for this to run in O(n^2)?"""
-
+    """Login: nested loop unfortunately get ready for this to run in O(n^2)"""
     success = False
     valid = True
     uid = ""
@@ -196,7 +196,8 @@ def login(cursor):
 
     loginType = ""
     user, artist = False, False
-    while success == True and valid == False:
+    while success == False and valid == True:
+
         uidSuccess = False
         print("Please enter your User ID, or press enter to exit:")
         while uidSuccess == False and valid == True:
@@ -231,11 +232,12 @@ def login(cursor):
                 break
 
         pwdSuccess = False
-        print("Please enter the password for user %s, or press enter to change user" % uid)
-        if loginType == "user":
-            pwdSuccess = userPwd(uid, cursor)
-        elif loginType == "artist":
-            pwdSuccess = artistPwd(uid, cursor)
+        if valid == True:
+            print("Please enter the password for user %s, or press enter to change user" % uid)
+            if loginType == "user":
+                pwdSuccess = userPwd(uid, cursor)
+            elif loginType == "artist":
+                pwdSuccess = artistPwd(uid, cursor)
 
         if pwdSuccess == True:
             break
@@ -243,7 +245,7 @@ def login(cursor):
     return valid, uid, loginType
 
 
-############################## END OF LOGIN ###############################
+############################## END OF LOGIN #########################
 
 
 ############################## ARTIST ###############################
@@ -453,13 +455,7 @@ def endSess(sessNo, cursor, connection):
     return
 
 
-def orderByKW(arr, keys):
-    """TODO: order the tuples so that the one with the most matched keywords is at the top of the list
-    RETURN THE LIST """
-    # arr is the tuple, keys is the keyword, order DESC with the top
-    # most array being the one with the most keywords matched
 
-    return
 
 
 def songInfo(song, cursor, connection):
@@ -644,51 +640,86 @@ def user(user):
 
             # get the keywords into an array
             keyWords = userInput.split()
-
             '''*** TO DO: get the rows, even if they're unordered thats okay we'll sort it in orderbyKW() *** '''
             # get all matching rows from keywords
-            q = ''' 
-            SELECT s.sid, s.title, s.duration
-            FROM songs as s
-            WHERE (s.sid LIKE ? AND s.title LIKE ?) OR s.sid LIKE ? OR s.title LIKE ? 
-            '''
-            cursor.execute(q, (keyWords[0], keyWords[1], keyWords[0], keyWords[1],))
-            allMatching = cursor.fetchall()
-            connection.commit()
+            # any not all
 
-            
-
-            q = ''' 
-            SELECT s.sid, s.title, s.duration
-            FROM songs as s
-            WHERE (s.sid LIKE ? AND s.title LIKE ?) OR s.sid LIKE ? OR s.title LIKE ? 
-            '''
-            cursor.execute(q, (keyWords[0], keyWords[1], keyWords[0], keyWords[1],))
-            allMatching = allMatching + cursor.fetchall()
-            connection.commit()
-
-            allMatchingL = list(allMatching)
+            songResults = []
+            playlistResults = []
+            i=0
+            for word in keyWords:
+                cursor.execute("""SELECT s.sid, s.title, s.duration
+                                    FROM songs as s
+                                    WHERE s.title LIKE ? """, ("%" + word.strip().lower() + "%",))
 
 
-            '''TO DO: 
-            ***FIRST: order the tuples by what has the most keywords
-            SECOND: print the 5 out
-            THIRD: ask what the user wants to do
-            
-            ***
-            '''
-            allMatchingL = orderByKW(allMatchingL, keyWords)
+                matchedSongs = cursor.fetchall()
+                for song in matchedSongs:
+                    i += 1
+                    print(i)
+                    song = list(song)
+                    inMatched = False
+                    if len(songResults)==0:
+                        result = [song, 1, 0,i]
+                        songResults.append(result)
+                    else:
+                        for result in songResults:
+                            if result == song:
+                                result[1] += 1
+                                inMatched = True
+                                break
 
-            # print the first 5
-            index = 0
+                        if inMatched == False:
+                            result = [song, 1, 0,i]
+                            songResults.append(result)
 
-            #TO DO: Switch this when we finish orderByKW
-            for i in range(len(allMatchingL)):
-                if i >= 5:
-                    break
-                else:
-                    print(allMatchingL[i])
-                    index += 1
+
+                cursor.execute("""SELECT p.pid, p.title
+                                    FROM playlists as p
+                                    WHERE p.title LIKE ? """, ("%" + word.strip().lower() + "%",))
+                #todo get total duration
+
+                matchedPlaylists = cursor.fetchall()
+                for playlist in matchedPlaylists:
+                    i += 1
+
+                    playlist = list(playlist)
+                    inMatched = False
+                    if len(playlistResults)==0:
+                        result = [playlist, 1, 1, i]
+                        playlistResults.append(result)
+                    else:
+                        for result in playlistResults:
+                            if result == playlist:
+                                result[1] += 1
+                                inMatched = True
+                                break
+
+                        if inMatched == False:
+                            result = [playlist, 1, 1, i]
+                            playlistResults.append(result)
+
+            for playlist in playlistResults:
+                songResults.append(playlist)
+
+            results = sorted(songResults, key=lambda p: p[1])
+
+            items = []
+            for i in range(len(songResults)):
+                items.append(results[i][0])
+            print(items)
+
+            selectedItem = utilities.paginate(items)
+            if selectedItem == None:
+                #todo fix me make all this a fxn n do a return
+                pass
+            elif results[selectedItem][2]== 0:
+                #todo its a song do the song thing
+                pass
+            elif results[selectedItem][2] == 1:
+                #todo its a playlist do the playlist thing
+                pass
+
 
             ''' *** TO DO: find a way to distinguish btwn playlist and song and how to enter a specific one*** 
             one thing to note is that neither song or playlist has a letter to distinguish itself as an id
@@ -822,3 +853,7 @@ def main():
 
 
 main()
+
+
+#todo register hangs after registration, fix (registration successful just stop it from hanging)
+#todo login does a weird print, fix
