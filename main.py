@@ -308,8 +308,7 @@ def topListen(artist):
 
 
 def artist(artist):
-    """TODO: check if it works,
-    add a way to logout"""
+    """TODO: check if it works, add a way to logout"""
     # artist is an aid of the user who logged in, used to check if a song exists or not
     connection, cursor = connect(path)
     print(
