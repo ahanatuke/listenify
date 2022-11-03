@@ -577,11 +577,12 @@ def main():
 
             logReg = introLoop()
             if logReg == 'r':
-                register()
-                initialDone = True
+                valid, uid = register()
+                if valid:
+                    initialDone = True
             elif logReg == 'l':
                 valid, uid, userTitle = login(cursor)
-                if valid == True:
+                if valid:
                     initialDone = True
 
             elif logReg == 'q':
