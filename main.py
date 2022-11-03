@@ -546,29 +546,92 @@ def displayPlaylist(plID, cursor, connection):
             print("Invalid number, please try again")
             userInput = input("> ")
 
+
 def orderByKWP(cursor, keyWords):
     songResults = []
     playlistResults = []
-    i=0
+    i = 0
     for word in keyWords:
         cursor.execute("""SELECT s.sid, s.title, s.duration
                             FROM songs as s
                             WHERE s.title LIKE ? """, ("%" + word.strip().lower() + "%",))
 
-    for song in pSongs:
-        print(song)
+        matchedSongs = cursor.fetchall()
+        for song in matchedSongs:
+            i += 1
+            song = list(song)
+            inMatched = False
+            if len(songResults) == 0:
+                result = [song, 1, 0, i]
+                songResults.append(result)
+            else:
+                for result in songResults:
+                    if result == song:
+                        result[1] += 1
+                        inMatched = True
+                        break
 
+                if inMatched == False:
+                    result = [song, 1, 0, i]
+                    songResults.append(result)
+
+        cursor.execute("""SELECT p.pid, p.title
+                            FROM playlists as p
+                            WHERE p.title LIKE ? """, ("%" + word.strip().lower() + "%",))
+        # todo get total duration
+
+        matchedPlaylists = cursor.fetchall()
+        for playlist in matchedPlaylists:
+            i += 1
+
+            playlist = list(playlist)
+            q = '''SELECT SUM(s.duration)
+            FROM songs as s, plinclude as pl, playlists as p 
+            WHERE p.pid = ? AND pl.pid = ? and s.sid = pl.sid  
+            '''
+            cursor.execute(q, (playlist[0], playlist[0],))
+
+            sum = cursor.fetchone()
+
+            playlist.append(sum)
+
+            inMatched = False
+            if len(playlistResults) == 0:
+                result = [playlist, 1, 1, i]
+                playlistResults.append(result)
+            else:
+                for result in playlistResults:
+                    if result == playlist:
+                        result[1] += 1
+                        inMatched = True
+                        break
+
+                if inMatched == False:
+                    result = [playlist, 1, 1, i]
+                    playlistResults.append(result)
+
+    for playlist in playlistResults:
+        songResults.append(playlist)
+
+    results = sorted(songResults, key=lambda p: p[1])
+    items = []
+    for i in range(len(songResults)):
+        items.append(results[i][0])
+
+    return results, items
 
 def displayArtist(cursor, aid):
     q = '''SELECT s.sid, s.title, s.duration
-                FROM songs as s, performs as p
-                WHERE  p.aid = ? AND songs s.sid = p.sid
+                FROM songs as s, perform as p
+                WHERE  p.aid = ? AND s.sid = p.sid
                 '''
     cursor.execute(q, (aid,))
     pSongs = cursor.fetchall()
 
     for song in pSongs:
         print(song)
+
+
 
 
 
@@ -612,30 +675,30 @@ def user(user):
                                     WHERE s.title LIKE ? """, ("%" + word.strip().lower() + "%",))
 
 
-        matchedSongs = cursor.fetchall()
-        for song in matchedSongs:
-            i += 1
-            song = list(song)
-            inMatched = False
-            if len(songResults)==0:
-                result = [song, 1, 0,i]
-                songResults.append(result)
-            else:
-                for result in songResults:
-                    if result == song:
-                        result[1] += 1
-                        inMatched = True
-                        break
+                matchedSongs = cursor.fetchall()
+                for song in matchedSongs:
+                    i += 1
+                    song = list(song)
+                    inMatched = False
+                    if len(songResults)==0:
+                        result = [song, 1, 0,i]
+                        songResults.append(result)
+                    else:
+                        for result in songResults:
+                            if result == song:
+                                result[1] += 1
+                                inMatched = True
+                                break
 
-                        if inMatched == False:
-                            result = [song, 1, 0,i]
-                            songResults.append(result)
+                                if inMatched == False:
+                                    result = [song, 1, 0,i]
+                                    songResults.append(result)
 
 
-        cursor.execute("""SELECT p.pid, p.title
-                            FROM playlists as p
-                            WHERE p.title LIKE ? """, ("%" + word.strip().lower() + "%",))
-        #todo get total duration
+                cursor.execute("""SELECT p.pid, p.title
+                                    FROM playlists as p
+                                    WHERE p.title LIKE ? """, ("%" + word.strip().lower() + "%",))
+                #todo get total duration
 
                 matchedPlaylists = cursor.fetchall()
                 for playlist in matchedPlaylists:
@@ -657,15 +720,14 @@ def user(user):
                     result = [playlist, 1, 1, i]
                     playlistResults.append(result)
 
-        for playlist in playlistResults:
-            songResults.append(playlist)
+            for playlist in playlistResults:
+                songResults.append(playlist)
 
-    results = sorted(songResults, key=lambda p: p[1])
-    items = []
-    for i in range(len(songResults)):
-        items.append(results[i][0])
+            results = sorted(songResults, key=lambda p: p[1])
+            items = []
+            for i in range(len(songResults)):
+                items.append(results[i][0])
 
-    return results, items
 
             if selectedItem == None:
                 #todo fix me make all this a fxn n do a return
@@ -870,7 +932,8 @@ def user(user):
                 else:
                     artist = items[selectedArtist]
                     cursor.execute("""SELECT aid FROM artists WHERE name = ? AND nationality = ?""", (artist[0], artist[1]))
-                    aid = cursor.fetchone()
+                    aid = str(cursor.fetchone()[0])
+
                     displayArtist(cursor, aid)
                     print("Enter song id to see more info, or press Enter to quit")
                     sid = input("> ")
@@ -878,12 +941,12 @@ def user(user):
                         pass#todo the quit thing
                     else:
                         while True:
-                            cursor.execute('''SELECT * FROM song WHERE sid = ?''', (sid,))
+                            cursor.execute('''SELECT * FROM songs WHERE sid = ?''', (sid,))
                             if cursor.fetchone() == None:
                                 print("Invalid input, please try again")
                                 sid = input("> ")
                             else:
-                                Selec
+                                selectSong(sid, cursor, connection)
 
 
 
