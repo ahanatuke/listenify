@@ -391,15 +391,15 @@ def orderByKW(arr, keys):
     return
 
 
-def songInfo():
+def songInfo(song):
     # gets artist name, sid, title and duration + any playlist the song is in
     connection, cursor = connect(path)
     q = '''SELECT a.name, s.sid, s.title, s.duration, pl.title 
     FROM artists a, perform pf, songs s, playlists pl, plinclude pli
     WHERE a.aid = pf.aid
-    AND pf.sid = s.sid
-    OR (s.sid = pli.sid)'''
-    cursor.execute(q)
+    AND pf.sid = ?
+    OR (? = pli.sid)'''
+    cursor.execute(q, song)
     songInfo = cursor.fetchone()
     connection.commit()
 
