@@ -7,7 +7,7 @@ def paginate(items, num = 5):
     if (maxIndex+1)%5 == 0:
         numPages = int((maxIndex+1)/5)
     else:
-        numPages = int(maxIndex/5) + 1
+        numPages = int(maxIndex/5)
 
     pageNum = 0
     if (maxIndex+1) < num:
@@ -22,9 +22,14 @@ def paginate(items, num = 5):
           "Enter a number from 1 to "+str(num)+" to select that result. Press Enter to quit")
 
     while True:
-        for i in range(0,num):
-            print(items[(5*pageNum) + i])
-        print("Page " + str(pageNum) +" / " + str(numPages))
+        if pageNum == numPages:
+            for i in range(0, (maxIndex+1)%5):
+                print(items[(5 * pageNum) + i])
+            print("Page " + str(pageNum+1) + " / " + str(numPages+1))
+        else:
+            for i in range(0,num):
+                print(items[(5*pageNum) + i])
+            print("Page " + str(pageNum+1) +" / " + str(numPages+1))
 
         while True:
             userInput = input("> ")
@@ -40,7 +45,7 @@ def paginate(items, num = 5):
                     pageNum += 1
                 break
             elif userInput.strip() in pageIndices:
-                return pageNum + int(userInput.strip()) - 1
+                return (5*pageNum) + int(userInput.strip()) - 1
             else:
                 print("Invalid input, please try again or press Enter to quit.")
 

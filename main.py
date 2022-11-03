@@ -523,9 +523,9 @@ def displayPlaylist(plID, cursor, connection):
 
     q = '''SELECT s.sid, s.title, s.duration
                 FROM playlists as p, songs as s, plinclude as pl
-                WHERE  p.pid = pl.pid AND songs.sid = pl.sid AND p.pid = ?
+                WHERE  p.pid = pl.pid AND s.sid = pl.sid AND p.pid = ?
                 '''
-    cursor.execute(q, (plID))
+    cursor.execute(q, (plID,))
     pSongs = cursor.fetchall()
     connection.commit()
     index = 0
@@ -560,6 +560,7 @@ def orderByKWP(cursor, keyWords):
         for song in matchedSongs:
             i += 1
             song = list(song)
+            song.append("Song")
             inMatched = False
             if len(songResults) == 0:
                 result = [song, 1, 0, i]
@@ -594,6 +595,7 @@ def orderByKWP(cursor, keyWords):
             sum = cursor.fetchone()
 
             playlist.append(sum)
+            playlist.append("Playlist")
 
             inMatched = False
             if len(playlistResults) == 0:
@@ -635,7 +637,7 @@ def displayArtist(cursor, aid):
 
 
 
-def user(user):
+'''def user(user):
     """LOTS TO DO:
     ***___*** => things to start on
     """
@@ -662,7 +664,7 @@ def user(user):
 
             # get the keywords into an array
             keyWords = userInput.split()
-            '''*** TO DO: get the rows, even if they're unordered thats okay we'll sort it in orderbyKW() *** '''
+            #*** TO DO: get the rows, even if they're unordered thats okay we'll sort it in orderbyKW() *** 
             # get all matching rows from keywords
             # any not all
 
@@ -737,7 +739,7 @@ def user(user):
                 pass
             elif results[selectedItem][2] == 1:
                 #todo its a playlist do the playlist thing
-                pass
+                pass'''
 
 def selectSong(sid,cursor, connection):
     print(
@@ -827,14 +829,27 @@ def user(user):
             selectedItem = utilities.paginate(items)
 
             if selectedItem == None:
-                #todo fix me make all this a fxn n do a return
                 pass
             elif results[selectedItem][2] == 0:
-                #todo its a song do the song thing
-                pass
+                sid = results[selectedItem][0]
+                selectSong(sid, cursor, connection)
+
             elif results[selectedItem][2] == 1:
-                #todo its a playlist do the playlist thing
-                pass
+                pid = str(results[selectedItem][0][0])
+                print(pid)
+                displayPlaylist(pid, cursor, connection)
+                print("Input an Song id for more information, or press enter to exit")
+                sid = input("> ")
+                while True:
+                    if sid == "":
+                        break
+                    elif cursor.execute("""SELECT * FROM songs WHERE sid = ?""", (sid,)).fetchone() != None:
+                        selectSong(sid, cursor, connection)
+                        break
+                    else:
+                        print("Invalid Input, please try again")
+                        sid = input("> ")
+
 
 
             ''' *** TO DO: find a way to distinguish btwn playlist and song and how to enter a specific one*** 
@@ -844,31 +859,9 @@ def user(user):
             only playlists have users, and only song have duration, look into that or other ways to distinguish whats a playlist. 
         '''
 
-            check = True
-            while (check):
-                print(
-                "Enter the id of a playlist or song you want to select as (playlist/song [number])\nEnter 'N' to go to "
-                "the next 5\Hit 'ENTER' to leave")
-                userInput = input("> ")
-                userInput = userInput.lower().strip()
-                # leave
-                if userInput[0] == '':
-                    check = False
 
-                # focus on getting song1 to see what the user inputs is a song or a playlist
-                elif userInput[0] == 'song' and int(userInput[1]) > 0:
-                    selectSong(userInput[1], cursor, connection)
-
-
-                elif userInput[0] == 'playlist' and int(userInput[1]) > 0:
-                    #GET PLAYLIST ID
-                    displayPlaylist(playlistID, cursor, connection)
                     
-                elif userInput[0] == 'd':
-                    # while index hasn't reached the end or over the array
-                    # print the next 5 and ask again
-                    
-                   endSess(cursor, connection)
+
 
         elif userInput == 'a':
             ''' ***TO DO: find artist by keywords. 
