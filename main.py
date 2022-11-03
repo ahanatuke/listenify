@@ -639,6 +639,7 @@ def displayArtist(cursor, aid):
 
 
 
+
 def selectSong(sid, sessNo, sessionStarted, cursor, connection):
     print(
     "Enter 'I' for the song information\nEnter 'L' to listen to the song\nEnter 'A' to add to a "
@@ -730,7 +731,9 @@ def user(user):
                 pass
             elif results[selectedItem][2] == 0:
                 sid = results[selectedItem][0]
+
                 selectSong(sid, sessNo, sessionStarted, cursor, connection)
+
 
             elif results[selectedItem][2] == 1:
                 pid = str(results[selectedItem][0][0])
