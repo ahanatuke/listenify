@@ -30,6 +30,12 @@ def introLoop():
     return userInput
 
 
+def checkQuit(uInput):
+    # TODO: @alinn check if user ever enters 'Q' at any input
+    if uInput.lower().strip() == 'q':
+        pass
+
+
 ############################## REGISTER ###############################
 
 def regInputs(suggestion, cursor):
