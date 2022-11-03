@@ -33,7 +33,6 @@ def introLoop():
 ############################## REGISTER ###############################
 
 def regInputs(suggestion, cursor):
-    # todo TEST THIS BITCH
     validUid = False
     print("Suggested user ID: " + suggestion)
     while validUid == False:
@@ -61,6 +60,16 @@ def regInputs(suggestion, cursor):
     return inputU, inputN, inputP
 
 
+def regSuccess(id, cursor):
+    cursor.execute("""SELECT * FROM USERS WHERE uid LIKE ?""", (id,))
+    if cursor.fetchone() is not None:
+        print("You have successfully registered.")
+        return True
+    else:
+        print("Registration was unsuccessful.")
+        return False
+
+
 def register():
     valid = True
     connection, cursor = connect(path)
@@ -76,7 +85,7 @@ def register():
     usersAmount += 1
     suggestion = "u" + str(usersAmount)
     cursor.execute('''SELECT * FROM users WHERE uid=?''', (suggestion,))
-    while cursor.fetchone() != None:
+    while cursor.fetchone() is not None:
         usersAmount += 1
         suggestion = "u" + str(usersAmount)
         cursor.execute('''SELECT * FROM users WHERE uid=?''', (suggestion,))
@@ -89,7 +98,7 @@ def register():
     while check == False:
 
         if reEnter.lower().strip() == 'n':
-            print("The following information has been discarded:\n" + inputU + "\n" + inputN)
+            print("Your information has been discarded.")
             inputU, inputN, inputP = regInputs(suggestion, cursor)
             break
         elif reEnter.lower().strip() == 'y':
@@ -97,15 +106,15 @@ def register():
             VALUES ((?), (?), (?))'''
             cursor.execute(q, (inputU, inputN, inputP))
             connection.commit()
-            print("Your user information has been saved")
+            valid = regSuccess(inputU, cursor)
             break
         elif reEnter == "":
             valid = False
             inputU = ""
             break
         else:
-            print("Invalid input. Please try again")
-            reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " ")
+            print("Invalid input. Please try again.")
+            reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n(Press enter to cancel) ")
 
     return valid, inputU
 
@@ -117,10 +126,10 @@ def idCheck(id, cursor):
     user = False
     artist = False
     cursor.execute("""SELECT * FROM USERS WHERE uid LIKE ?""", (id,))
-    if cursor.fetchone() != None:
+    if cursor.fetchone() is not None:
         user = True
     cursor.execute("""SELECT * FROM artists WHERE aid LIKE ?""", (id,))
-    if cursor.fetchone() != None:
+    if cursor.fetchone() is not None:
         artist = True
     return user, artist
 
