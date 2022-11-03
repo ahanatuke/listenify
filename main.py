@@ -392,7 +392,7 @@ def orderByKW(arr, keys):
 
 
 def songInfo():
-    # get artist name, sid, title and duration + any playlist the song is in
+    # gets artist name, sid, title and duration + any playlist the song is in
     connection, cursor = connect(path)
     q = '''SELECT a.name, s.sid, s.title, s.duration, pl.title 
     FROM artists a, perform pf, songs s, playlists pl, plinclude pli
