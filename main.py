@@ -654,9 +654,9 @@ def user(user):
 
             keyWords = userInput.split()
             q = ''' 
-            SELECT s.sid, s.title, s.duration
-            FROM songs as s
-            WHERE (s.sid LIKE ? AND s.title LIKE ?) OR s.sid LIKE ? OR s.title LIKE ? 
+            SELECT a.name, a.nationality, COUNT(s.sid)
+            FROM songs as s, artasts as a, perform as p
+            WHERE s.sid = p.sid AND a.aid = p.aid AND ((s.title LIKE ? AND  a.name LIKE ?) OR s.title LIKE ? OR a.name LIKE ?)
             '''
             cursor.execute(q, (keyWords[0], keyWords[1], keyWords[0], keyWords[1],))
             allMatching = cursor.fetchall()
