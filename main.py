@@ -84,14 +84,14 @@ def regSuccess(id, cursor):
 
 def register(cursor):
     valid = True
-    #connection, cursor = connect(path)
+    connection, cursor = connect(path)
     q = '''SELECT *
     FROM users
     '''
     cursor.execute(q)
 
     usersAmount = len(cursor.fetchall())
-    # connection.commit()
+    connection.commit()
 
     # this functionality is probably unnecessary and yet, i did it anyway
     usersAmount += 1
@@ -215,7 +215,7 @@ def login(cursor):
             elif user == False and artist == True:
                 loginType = "artist"
                 break
-            elif user == True and artist == False:
+            elif user == True and artist == True:
                 print("Press 'A' to login as an artist. Press 'U' to login as a user.")
                 while True:
                     loginTypeInput = input("> ")
@@ -262,12 +262,26 @@ def addSong(artist, cursor, connection):
     cursor.execute(q)
     sidNew = len(cursor.fetchall()) + 1
     connection.commit()
+    
+    cursor.execute('''SELECT * FROM songs WHERE sid=?''', (sidNew,))
+
+    while cursor.fetchone() is not None:
+        sidNew += 1
+        cursor.execute('''SELECT * FROM sid WHERE sid=?''', (sidNew,))
 
     print("Please enter the title and duration (in seconds): ")
     title = input("Title: ")
     duration = input("Duration (in seconds): ")
-    duration = int(duration)
-
+    check = True
+    while(check):
+        try:    
+            duration = int(duration)
+            if duration < 0:
+                raise Exception
+            check = True
+        except:
+            print("Invalid number please try again.")
+            duration = input("Duration (in seconds): ")
     # CHECK IF THE SONG EXISTS
     q = '''SELECT  s.title, s.duration
         FROM songs as s, artists as a, perform as p
@@ -298,17 +312,41 @@ def addSong(artist, cursor, connection):
 
 
     else:
-        print("Cannot add, this song already exists.")
-
+        print("This song already exists, would you like to add it again? [Y/N/E to close program] ")
+        userInput = input("> ").lower.strip()
+        if userInput == 'y':
+            q = '''INSERT INTO songs 
+                VALUES(?, ?, ?)'''
+            cursor.execute(q, (sidNew, title, duration,))
+            connection.commit()
+            userInput = input("Please list the aid's of everyone who is featured on your song (hit ENTER if none): ")
+            inputChecker = userInput.split()
+            if inputChecker != '':
+                result = [x.strip() for x in userInput.split(',')]
+                # assuming we dont need to validate aids for every feature
+                for feature in result:
+                    q = '''INSERT INTO perform 
+                    VALUES (?, ?)'''
+                    cursor.execute(q, (feature, sidNew))
+                    connection.commit()
+            print("Song %s has been successfully added in." % songExist)
+        elif userInput == 'n':
+            print("Song has not been added in.")
+            return
+        elif userInput == 'e':
+            endProg()
     return
 
 
 def topListen(artist,  cursor, connection):
     connection, cursor = connect(path)
-    q = '''SELECT u.uid
-    FROM
-    WHERE
-    ORDER BY u.uid DESC
+    q = '''SELECT DISTINCT u.uid, a.name
+    FROM users u, sessions ses, listen l, artists a, perform p, songs s
+    WHERE ses.uid = l.uid
+        AND l.sid = p.sid
+        AND p.aid = a.aid
+        AND a.aid = 'a1'
+    ORDER BY l.cnt DESC
     LIMIT 3
     '''
     cursor.execute(q)
@@ -317,10 +355,18 @@ def topListen(artist,  cursor, connection):
     for user in top3U:
         print(user)
 
-    q = '''SELECT p.pid
-    FROM
-    WHERE
-    ORDER BY p.pid DESC
+    q = '''SELECT DISTINCT pl.title, a.name
+    FROM playlists pl, artists a
+    WHERE (SELECT DISTINCT MAX(s.sid)
+        FROM perform p,
+                songs s,
+                plinclude pi, 
+                playlists pl2
+        WHERE a.aid = 'a1'
+             AND p.sid = s.sid
+            AND pi.sid = s.sid
+            AND a.aid = p.aid
+        ORDER BY pl2.pid DESC)
     LIMIT 3
     '''
     cursor.execute(q)
@@ -437,7 +483,7 @@ def songInfo(song, cursor, connection):
 
 
 
-def addToPlaylist(sessNo, userInput, user, cursor, connection):
+def addToPlaylist(sessNo, userInput, user, cursor, connection): 
     connection, cursor = connect(path)
     #todo: just pass the cursor, don't do this
 
