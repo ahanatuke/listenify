@@ -32,14 +32,31 @@ def introLoop():
     return userInput
 
 
-def checkQuit(uInput):
-    # TODO: @alinn check if it works
-    if uInput.lower().strip() == 'q':
-        print("Would you like to quit the program? [Y/N]")
-        quit = input('> ')
+def checkQuit(userInput):
+    if userInput.lower().strip() == 'q':
+        quit = input("Would you like to close the program? [Y/N]\n> ").lower().strip()
 
-        if quit.lower().strip() == 'y':
+        if quit == 'y':
+            print("Program terminating...goodbye.")
             exit()
+        elif quit != 'n':
+            print("Invalid input, please try again.")
+            checkQuit(userInput)
+
+
+"""
+# replaced with checkQuit()
+def endProg():
+    userInput = input("Would you like to close the program? [Y/N]\n> ")
+    userInput = userInput.lower().strip()
+    if userInput == 'y':
+        exit()
+    elif userInput == 'n':
+        return
+    else:
+        userInput = input(
+            "Invalid input, please try again.\nWould you like to close the program? [Y/N]\n> ").lower().split()
+"""
 
 
 ############################## REGISTER ###############################
@@ -47,7 +64,7 @@ def checkQuit(uInput):
 def regInputs(suggestion, cursor):
     validUid = False
     print("Suggested user ID: " + suggestion)
-    while validUid == False:
+    while not validUid:
         inputU = input("Please enter a user id (max 4 characters), or press ENTER to use the suggested: ")
         if inputU == "":
             inputU = suggestion
@@ -56,7 +73,7 @@ def regInputs(suggestion, cursor):
             print("User ID is too long. ID can be at most 4 characters.")
         else:
             cursor.execute("""SELECT * FROM users WHERE uid = ?""", (inputU,))
-            if cursor.fetchone() == None:
+            if cursor.fetchone() is None:
                 validUid = True
             else:
                 print("User ID is already taken.")
@@ -105,7 +122,7 @@ def register(cursor, connection):
     reEnter = input("Keep the following information? [Y/N]\n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
     check = False
 
-    while check == False:
+    while not check:
 
         if reEnter.lower().strip() == 'n':
             print("Your information has been discarded.")
@@ -124,7 +141,8 @@ def register(cursor, connection):
             break
         else:
             print("Invalid input. Please try again.")
-            reEnter = input("Keep the following information? [Y/N]\n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
+            reEnter = input(
+                "Keep the following information? [Y/N]\n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
 
     return valid, inputU
 
@@ -147,42 +165,33 @@ def idCheck(id, cursor):
 
 
 def userPwd(id, cursor):
-    print(
-        "Please enter the password for user %s, or press ENTER change user or 'Q' to quit program." % id)  # TODO: add quit func, checkQuit() OR  have it return back to first screen
     while True:
+        print(
+            "Please enter the password for user %s, or press ENTER change user, or 'Q' to quit program." % id)
         pwd = getpass.getpass("> ")
+        checkQuit(pwd)
         if pwd == "":
             return False
         cursor.execute("SELECT * FROM USERS WHERE uid LIKE ? AND pwd=?", (id, pwd))
-        if cursor.fetchone() != None:
+        if cursor.fetchone() is not None:
             return True
         else:
-            print("Incorrect password: please try again or press ENTER to exit.")  # TODO: checkQuit()
+            print("Incorrect password, please try again.")
 
 
 def artistPwd(id, cursor):
-    print("Please enter the password for your artist account, or press ENTER to exit.")  # TODO: checkQuit()
     while True:
+        print(
+            "Please enter the password for artist %s, or press ENTER to exit, or 'Q' to quit program." % id)
         pwd = getpass.getpass("> ")
+        checkQuit(pwd)
         if pwd == "":
             return False
         cursor.execute("SELECT * FROM artists WHERE aid LIKE ? AND pwd=?", (id, pwd))
-        if cursor.fetchone() != None:
+        if cursor.fetchone() is not None:
             return True
         else:
-            print("Incorrect password: please try again or press ENTER to exit.")  # TODO: checkQuit()
-
-
-def endProg():
-    userInput = input("Would you like to close the program? [Y/N]\n> ")
-    userInput = userInput.lower().strip()
-    if userInput == 'y':
-        exit()
-    elif userInput == 'n':
-        return
-    else:
-        userInput = input(
-            "Invalid input, please try again.\nWould you like to close the program? [Y/N]\n> ").lower().split()
+            print("Incorrect password, please try again.")
 
 
 def login(cursor):
@@ -197,7 +206,7 @@ def login(cursor):
     while success == False and valid == True:
 
         uidSuccess = False
-        print("Please enter your User ID, or press ENTER to exit:")  # TODO: checkQuit()
+        print("Please enter your User ID, or press ENTER to exit:")  # TODO: checkQuit() or returning to prev session?
         while uidSuccess == False and valid == True:
             uid = input("> ")
             if uid == "":
@@ -206,7 +215,7 @@ def login(cursor):
 
             user, artist = idCheck(uid, cursor)
             if user == False and artist == False:
-                print("No user with that username. Please try again, or press ENTER to exit.")  # TODO: checkQuit()
+                print("No user with that username. Please try again, or press ENTER to exit.")  # TODO: checkQuit() or returning to prev session?
                 break
             elif user == True and artist == False:
                 loginType = "user"
@@ -271,7 +280,7 @@ def addSong(artist, cursor, connection):
     title = input("Title: ")
     duration = input("Duration (in seconds): ")  # TODO: hangs after entering seconds
     check = True
-    while (check):
+    while check:
         try:
             duration = int(duration)
             if duration < 0:
@@ -290,7 +299,7 @@ def addSong(artist, cursor, connection):
     songExist = cursor.fetchone()
     connection.commit()
 
-    if songExist == None:
+    if songExist is None:
 
         q = '''INSERT INTO songs 
         VALUES(?, ?, ?)'''
@@ -310,7 +319,7 @@ def addSong(artist, cursor, connection):
 
 
     else:
-        print("This song already exists, would you like to add it again? [Y/N/E to close program] ")  # TODO: checkQuit() use Q instead of E
+        print("This song already exists, would you like to add it again? [Y/N/Q to close program] ")
         userInput = input("> ").lower().strip()
         if userInput == 'y':
             q = '''INSERT INTO songs 
@@ -321,7 +330,7 @@ def addSong(artist, cursor, connection):
             inputChecker = userInput.split()
             if inputChecker != '':
                 result = [x.strip() for x in userInput.split(',')]
-                # assuming we dont need to validate aids for every feature
+                # assuming we don't need to validate aids for every feature
                 for feature in result:
                     q = '''INSERT INTO perform 
                     VALUES (?, ?)'''
@@ -331,8 +340,8 @@ def addSong(artist, cursor, connection):
         elif userInput == 'n':
             print("Song has not been added in.")
             return
-        elif userInput == 'e':
-            endProg()
+        elif userInput == 'q':
+            checkQuit(userInput)
     return
 
 
@@ -373,21 +382,20 @@ def topListen(artist, cursor, connection):
         print(playlist)
 
 
-def artist(artist):
-    """TODO: check if it works, add a way to logout"""
+def artist(artist, connection, cursor):
+    """TODO: check if it works"""
     # artist is an aid of the user who logged in, used to check if a song exists or not
-    connection, cursor = connect(path)
     print(
         "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter "
-        "'L' to logout.\nEnter 'E' to exit the program.")  # TODO: checkQuit()
+        "'L' to logout.\nEnter 'Q' to close the program.")
     userInput = input("> ")
     userInput = userInput.lower().strip()
 
     check = True
 
-    while check == True:
+    while check:
 
-        if userInput != "a" and userInput != "f" and userInput != 'l' and userInput != 'e':
+        if userInput != "a" and userInput != "f" and userInput != 'l' and userInput != 'q':
 
             print("Invalid input. Please try again.")
             userInput = input("> ")
@@ -403,15 +411,15 @@ def artist(artist):
                 return True
             elif userInput == 'n':
                 print(
-                    "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.\nEnter 'E' to exit the program.")
-                userInput = input("> ").lower().strip()  # TODO: checkQuit()
-        elif userInput == 'e':
-            endProg()
+                    "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.\nEnter 'Q' to close the program.")
+                userInput = input("> ").lower().strip()
+        elif userInput == 'q':
+            checkQuit(userInput)
 
     return True
 
 
-############################## END OF ARTIST ###############################
+##################### END OF ARTIST ###############################
 
 
 ############################## USER ###############################
@@ -448,13 +456,11 @@ def endSess(sessNo, cursor, connection):
     return
 
 
-def songInfo(song, cursor, connection):
+def songInfo(song, connection, cursor):
     # song = sid
     """ Finish the query """
 
     # get artist name, sid, title and duration + any playlist the song is in
-
-    connection, cursor = connect(path)
     q = '''SELECT a.name, s.sid, s.title, s.duration, pl.title 
     FROM artists a, perform pf, songs s, playlists pl, plinclude pli
     WHERE a.aid = pf.aid
@@ -462,16 +468,14 @@ def songInfo(song, cursor, connection):
     AND pli.sid = ?
     AND pli.pid = pl.pid'''
     cursor.execute(q, (song[0], song[0]))
-    songInfo = cursor.fetchone()
+    songInfo2 = cursor.fetchone()
     connection.commit()
 
-    for info in songInfo:
+    for info in songInfo2:
         print(info)
 
 
-def addToPlaylist(sessNo, userInput, user, cursor, connection):
-    # todo: just pass the cursor, don't do this
-
+def addToPlaylist(sessNo, userInput, user, connection, cursor):
     q = '''SELECT s.sid 
     FROM songs as s
     WHERE s.sid = ?'''
@@ -528,7 +532,7 @@ def displayPlaylist(plID, cursor, connection):
     for song in pSongs:
         print(song)
 
-    print("Enter a song ID for more information or press ENTER to exit")  # TODO: checkQuit()
+    print("Enter a song ID for more information or press ENTER to exit")  # TODO: checkQuit() or returning to prev session?
     while True:
         userInput = input("> ")
         if userInput == "":
@@ -547,7 +551,7 @@ def orderByKWP(cursor, keyWords):
     for word in keyWords:
         cursor.execute("""SELECT s.sid, s.title, s.duration
                             FROM songs as s
-                            WHERE s.title LIKE ? """, ("%" + word.strip().lower() + "%",))
+                            WHERE s.title LIKE ? """, ("%" + word.lower().strip() + "%",))
 
         matchedSongs = cursor.fetchall()
         for song in matchedSongs:
@@ -571,7 +575,7 @@ def orderByKWP(cursor, keyWords):
 
         cursor.execute("""SELECT p.pid, p.title
                             FROM playlists as p
-                            WHERE p.title LIKE ? """, ("%" + word.strip().lower() + "%",))
+                            WHERE p.title LIKE ? """, ("%" + word.lower().strip() + "%",))
         # todo get total duration
 
         matchedPlaylists = cursor.fetchall()
@@ -639,7 +643,7 @@ def selectSong(sid, sessNo, sessionStarted, cursor, connection):
     if uInput == 'i':
 
         # FIRST ARG IS SONG, RETRIEVE THE SONG FIRST
-        songInfo(sid, cursor, connection)
+        songInfo(sid, connection, cursor)
     elif uInput == 'L':
         '''a listening event is recorded within the current session of the user (if a session has already 
         started for the user) or within a new session (if not). When starting a new session, follow the 
@@ -673,24 +677,23 @@ def selectSong(sid, sessNo, sessionStarted, cursor, connection):
         created with a unique id (created by your system) and the uid set to the id of the user and a 
         title should be obtained from input. '''
 
-        addToPlaylist(sessNo, sid, user, cursor, connection)
+        addToPlaylist(sessNo, sid, user, connection, cursor)
     else:
         print("Invalid input. Try again.")
     return
 
 
-def user(user):
+def user(user, connection, cursor):
     """LOTS TO DO:
     ***___*** => things to start on
     """
     # user is an uid of the user to logged in
-    connection, cursor = connect(path)
     sessionStarted = False
     loggedIn = True
     while (loggedIn):
         print(
-            "To start a session enter 'S'\nTo search for a song or playlist enter 'P'\nTo search for an artist enter 'A' "
-            "\nTo end the session enter 'D'\nTo logout enter 'L'\nTo exit the program press 'E'  ")  # TODO: remove end session and move to after session starts # TODO: perhaps update the exit program with quit and use checkQuit()
+            "Enter 'S' to start a session\nEnter 'P' to search for a song or playlist\nEnter 'A' to search for an "
+            "artist\nEnter 'E' to end the session\nEnter 'L' to logout\nEnter 'Q' to close the program")  # TODO: remove end session and move to after session starts # TODO: perhaps update the exit program with quit and  use checkQuit()
         userInput = input("> ")
         userInput = userInput.lower().strip()  # TODO: doesn't seem to overwrite at times??
         sessNo = 0
@@ -793,7 +796,7 @@ def user(user):
                                 inMatched = True
                                 break
 
-                        if inMatched == False:
+                        if not inMatched:
                             result = [artist, 1, i]
                             artistResults.append(result)
 
@@ -805,9 +808,10 @@ def user(user):
 
                 selectedArtist = utilities.paginate(items)
 
-                if selectedArtist == None:
+                if selectedArtist is None:
                     pass
-                # todo do the quit, call checkQuit()
+                    # exit()
+                # todo do the quit, call checkQuit()?
                 else:
                     artist = items[selectedArtist]
                     cursor.execute("""SELECT aid FROM artists WHERE name = ? AND nationality = ?""",
@@ -815,14 +819,17 @@ def user(user):
                     aid = str(cursor.fetchone()[0])
 
                     displayArtist(cursor, aid)
-                    print("Enter song id to see more info, or press ENTER to quit")  # TODO: also use checkQuit()
+                    print(
+                        "Enter song id to see more info, or press ENTER to exit")  # TODO: also use checkQuit() or are we returning to prev session?
                     sid = input("> ")
+                    # checkQuit(sid)
                     if sid == None:
-                        pass  # todo the quit thing, call checkQuit()
+                        pass  # todo the quit thing, call checkQuit()?
+                        # exit()
                     else:
                         while True:
                             cursor.execute('''SELECT * FROM songs WHERE sid = ?''', (sid,))
-                            if cursor.fetchone() == None:
+                            if cursor.fetchone() is None:
                                 print("Invalid input, please try again")
                                 sid = input("> ")
                             else:
@@ -830,7 +837,7 @@ def user(user):
 
 
 
-        elif userInput == 'd':  # TODO: move to after session starts
+        elif userInput == 'e':  # TODO: move to after session starts
             endSess(sessNo, cursor, connection)
             sessionStarted = False
 
@@ -843,13 +850,18 @@ def user(user):
                     return True
                 elif userInput == 'n':
                     print(
-                        "To start a session enter 'S'\n To search for a song or playlist enter 'P'\nEnter 'A' to search for an "
-                        "artist\nTo end the session enter 'D'\nTo logout enter 'L'\nTo exit the program press 'E'  ")
+                        "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of "
+                        "your songs.\nEnter 'L' to logout.\nEnter 'Q' to close the program.")
+                    userInput = input("> ").lower().strip()
+                    print(
+                        "Enter 'S' to start a session\n Enter 'P' to search for a song or playlist\nEnter 'A' to "
+                        "search for an artist\nEnter 'E' to end the session\nEnter 'L' to logout\nEnter 'Q' to close "
+                        "the program")
                     userInput = input("> ").lower().split()
                 else:
                     print("Invalid input, try again.")
-        elif userInput == 'e':
-            endProg()
+        elif userInput == 'q':
+            checkQuit(userInput)
     return True
 
 
@@ -886,7 +898,7 @@ def main():
 
             elif logReg == 'q':
                 quitProgram = True
-                print("Thank you.")
+                print("Terminating program...goodbye.")
                 break
 
         sessionDone = False
@@ -894,13 +906,11 @@ def main():
         while sessionDone == False and quitProgram == False:
 
             if userTitle == 'artist':
-                sessionDone = artist(id)
+                sessionDone = artist(id, connection, cursor)
                 sessionDone = True
             elif userTitle == 'user':
-                sessionDone = user(id)
+                sessionDone = user(id, connection, cursor)
                 sessionDone = True
 
 
 main()
-
-# todo register hangs after registration, fix (registration successful just stop it from hanging)
