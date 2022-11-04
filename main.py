@@ -620,6 +620,8 @@ def displayArtist(cursor, aid):
     cursor.execute(q, (aid,))
     pSongs = cursor.fetchall()
 
+    name = cursor.execute('''SELECT name FROM artists WHERE aid = ?''', (aid,)).fetchone()[0]
+    print("Songs by " + name)
     for song in pSongs:
         print(song)
 
@@ -743,9 +745,7 @@ def user(user, connection, cursor):
 
 
         elif userInput == 'a':
-            # TODO: find artist by keywords.
-            ''' ***TODO: find artist by keywords. 
-            
+            '''            
             The user should be able to provide one or more unique keywords, and the system should retrieve all artists 
             that have any of those keywords either in their names or in the title of a song they have performed. For each 
             matching artist, the name, the nationality and the number of songs performed are returned. The result should 
@@ -830,21 +830,12 @@ def user(user, connection, cursor):
         elif userInput == 'l':
             check = True
             while check:
-                userInput = input("Are you sure you want to logout? [Y/N]\n> ").lower().strip()
-                if userInput == 'y':
+                userInput = input("Are you sure you want to logout? [Y/N]\n> ")
+                if userInput.strip().lower() == 'y':
                     loggedIn = False
                     return True
-                elif userInput == 'n':
-                    print(
-                        "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of "
-                        "your songs.\nEnter 'L' to logout.\nEnter 'Q' to close the program.")
-                    userInput = input("> ").lower().strip()
-                    print(
-                        "Enter 'S' to start a session\n Enter 'P' to search for a song or playlist\nEnter 'A' to "
-                        "search for an artist\nEnter 'E' to end the session\nEnter 'L' to logout\nEnter 'Q' to close "
-                        "the program")
-                    userInput = input("> ").lower().split()
-                else:
+                    print("Aaaaaaaaaaaaaaaaaaaaaaa")
+                elif userInput.lower().strip() != 'n':
                     print("Invalid input, try again.")
         elif userInput == 'q':
             checkQuit(userInput)
@@ -895,22 +886,17 @@ def main():
 
         while sessionDone == False and quitProgram == False:
 
-            #todo what is this
-            # why are we getting the values from the artist/user fxns only to manually set them to true
-            #pls explain thnk u
+
             if userTitle == 'artist':
                 sessionDone = artist(id, connection, cursor)
-                sessionDone = True
+                initialDone = False
             elif userTitle == 'user':
                 sessionDone = user(id, connection, cursor)
-                sessionDone = True
+                initialDone = False
+
+
 
 
 main()
 
-#todo register hangs after registration, fix (registration successful just stop it from hanging)
-#todo login does a weird print, fix
-#todo if you try to logout as a user and then change your mind the program thinks you are an artist
-#todo search artist potentially busted
-#todo fix display results for search, don't need the ints (esp artists)
 #todo fix display results for artist
