@@ -912,3 +912,5 @@ main()
 #todo login does a weird print, fix
 #todo if you try to logout as a user and then change your mind the program thinks you are an artist
 #todo search artist potentially busted
+#todo fix display results for search, don't need the ints (esp artists)
+#todo fix display results for artist
