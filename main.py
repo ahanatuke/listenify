@@ -35,7 +35,7 @@ def introLoop():
 def checkQuit(uInput):
     # TODO: @alinn check if it works
     if uInput.lower().strip() == 'q':
-        print("Would you like to quit the program? [Y/N]")
+        print("Would you like to quit the program? [Y/N]: \n")
         quit = input('> ')
 
         if quit.lower().strip() == 'y':
@@ -48,7 +48,7 @@ def regInputs(suggestion, cursor):
     validUid = False
     print("Suggested user ID: " + suggestion)
     while validUid == False:
-        inputU = input("Please enter a user id (max 4 characters), or press enter to use the suggested: ")
+        inputU = input("Please enter a user id (max 4 characters), or press ENTER to use the suggested: ")
         if inputU == "":
             inputU = suggestion
             validUid = True
@@ -102,7 +102,7 @@ def register(cursor, connection):
 
     inputU, inputN, inputP = regInputs(suggestion, cursor)
 
-    reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n(Press enter to cancel) ")
+    reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
     check = False
 
     while check == False:
@@ -124,7 +124,7 @@ def register(cursor, connection):
             break
         else:
             print("Invalid input. Please try again.")
-            reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n(Press enter to cancel) ")
+            reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
 
     return valid, inputU
 
@@ -148,7 +148,7 @@ def idCheck(id, cursor):
 
 def userPwd(id, cursor):
     print(
-        "Please enter the password for user %s, or press enter change user or 'Q' to quit program." % id)  # TODO: add quit func, checkQuit() OR  have it return back to first screen
+        "Please enter the password for user %s, or press ENTER change user or 'Q' to quit program." % id)  # TODO: add quit func, checkQuit() OR  have it return back to first screen
     while True:
         pwd = getpass.getpass("> ")
         if pwd == "":
@@ -157,11 +157,11 @@ def userPwd(id, cursor):
         if cursor.fetchone() != None:
             return True
         else:
-            print("Incorrect password: please try again or press enter to exit.")  # TODO: checkQuit()
+            print("Incorrect password: please try again or press ENTER to exit.")  # TODO: checkQuit()
 
 
 def artistPwd(id, cursor):
-    print("Please enter the password for your artist account, or press enter to exit.")  # TODO: checkQuit()
+    print("Please enter the password for your artist account, or press ENTER to exit.")  # TODO: checkQuit()
     while True:
         pwd = getpass.getpass("> ")
         if pwd == "":
@@ -170,7 +170,7 @@ def artistPwd(id, cursor):
         if cursor.fetchone() != None:
             return True
         else:
-            print("Incorrect password: please try again or press enter to exit.")  # TODO: checkQuit()
+            print("Incorrect password: please try again or press ENTER to exit.")  # TODO: checkQuit()
 
 
 def endProg():
@@ -197,7 +197,7 @@ def login(cursor):
     while success == False and valid == True:
 
         uidSuccess = False
-        print("Please enter your User ID, or press enter to exit:")  # TODO: checkQuit()
+        print("Please enter your User ID, or press ENTER to exit:")  # TODO: checkQuit()
         while uidSuccess == False and valid == True:
             uid = input("> ")
             if uid == "":
@@ -206,7 +206,7 @@ def login(cursor):
 
             user, artist = idCheck(uid, cursor)
             if user == False and artist == False:
-                print("No user with that username. Please try again, or press enter to exit.")  # TODO: checkQuit()
+                print("No user with that username. Please try again, or press ENTER to exit.")  # TODO: checkQuit()
                 break
             elif user == True and artist == False:
                 loginType = "user"
@@ -528,7 +528,7 @@ def displayPlaylist(plID, cursor, connection):
     for song in pSongs:
         print(song)
 
-    print("Enter a song ID for more information or press enter to exit")  # TODO: checkQuit()
+    print("Enter a song ID for more information or press ENTER to exit")  # TODO: checkQuit()
     while True:
         userInput = input("> ")
         if userInput == "":
@@ -631,7 +631,7 @@ def displayArtist(cursor, aid):
 def selectSong(sid, sessNo, sessionStarted, cursor, connection):
     print(
         "Enter 'I' for the song information\nEnter 'L' to listen to the song\nEnter 'A' to add to a "
-        "playlist\nHit ENTER to leave the selected song")
+        "playlist\nPress ENTER to leave the selected song")
     uInput = input("> ")
     uInput = uInput.lower().strip()
 
@@ -706,7 +706,7 @@ def user(user):
 
             # get the keywords into an array
             keyWords = userInput.split()
-            '''*** TO DO: get the rows, even if they're unordered thats okay we'll sort it in orderbyKW() *** '''
+            '''*** TO DO: get the rows, even if they're unordered that's okay we'll sort it in orderbyKW() *** '''
             # get all matching rows from keywords
             # any not all
 
@@ -737,7 +737,7 @@ def user(user):
                         print("Invalid Input, please try again")
                         sid = input("> ")
 
-            ''' *** TO DO: find a way to distinguish btwn playlist and song and how to enter a specific one*** 
+            ''' *** TO DO: find a way to distinguish b/w playlist and song and how to enter a specific one*** 
             one thing to note is that neither song or playlist has a letter to distinguish itself as an id
                     i.e. sid of wavin flag would be 1 and not s1
             ways to solve this: maybe look into finding a way within the for loop to attach an s or a p to the id?
@@ -815,7 +815,7 @@ def user(user):
                     aid = str(cursor.fetchone()[0])
 
                     displayArtist(cursor, aid)
-                    print("Enter song id to see more info, or press Enter to quit")  # TODO: also use checkQuit()
+                    print("Enter song id to see more info, or press ENTER to quit")  # TODO: also use checkQuit()
                     sid = input("> ")
                     if sid == None:
                         pass  # todo the quit thing, call checkQuit()
