@@ -454,13 +454,11 @@ def endSess(sessNo, cursor, connection):
     return
 
 
-def songInfo(song, cursor, connection):
+def songInfo(song, connection, cursor):
     # song = sid
     """ Finish the query """
 
     # get artist name, sid, title and duration + any playlist the song is in
-
-    connection, cursor = connect(path)
     q = '''SELECT a.name, s.sid, s.title, s.duration, pl.title 
     FROM artists a, perform pf, songs s, playlists pl, plinclude pli
     WHERE a.aid = pf.aid
@@ -468,10 +466,10 @@ def songInfo(song, cursor, connection):
     AND pli.sid = ?
     AND pli.pid = pl.pid'''
     cursor.execute(q, (song[0], song[0]))
-    songInfo = cursor.fetchone()
+    songInfo2 = cursor.fetchone()
     connection.commit()
 
-    for info in songInfo:
+    for info in songInfo2:
         print(info)
 
 
@@ -645,7 +643,7 @@ def selectSong(sid, sessNo, sessionStarted, cursor, connection):
     if uInput == 'i':
 
         # FIRST ARG IS SONG, RETRIEVE THE SONG FIRST
-        songInfo(sid, cursor, connection)
+        songInfo(sid, connection, cursor)
     elif uInput == 'L':
         '''a listening event is recorded within the current session of the user (if a session has already 
         started for the user) or within a new session (if not). When starting a new session, follow the 
