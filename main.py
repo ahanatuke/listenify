@@ -260,7 +260,7 @@ def addSong(artist, cursor, connection):
     exist we insert it, and then request an input about whom the features are, once provided do a for loop and add
     every feature Make sure to confirm that is either added in or exists"""
 
-    # TODO: check if it works
+    # TODO: check if it works it don't
 
     # get all songs and get len
     q = '''SELECT *
@@ -276,43 +276,45 @@ def addSong(artist, cursor, connection):
 
     print("Please enter the following song information: ")
     title = input("Title: ")
-    duration = input("Duration (in seconds): ")  # TODO: hangs after entering seconds
+    duration = input("Duration (in seconds): ")
     check = True
     while check == True:
         try:
             duration = int(duration)
             if duration < 0:
                 raise Exception
-            check = True
+            check = False
         except:
             print("Invalid number please try again.")
             duration = input("Duration (in seconds): ")
     # CHECK IF THE SONG EXISTS
     q = '''SELECT  s.title, s.duration
         FROM songs as s, artists as a, perform as p
-        WHERE s.title = ? AND s.duration = ? AND a.aid = ? AND p.sid = s.sid AND p.aid = a.aid 
+        WHERE s.title LIKE ? AND s.duration = ? AND a.aid LIKE ? AND p.sid = s.sid AND p.aid = a.aid 
         '''
+
+
     cursor.execute(q, (title, duration, artist,))
     # 1 song should exist like this, len of fetchone = 0 it should be unique HYPOTHETICALLY
-    songExist = cursor.fetchone()
-    connection.commit()
+    songExist = cursor.fetchall()
 
-    if songExist is None:
-
+    if songExist == None:
         q = '''INSERT INTO songs 
         VALUES(?, ?, ?)'''
         cursor.execute(q, (sidNew, title, duration,))
         connection.commit()
-        userInput = input("Please list the aid's of everyone who is featured on your song (hit ENTER if none): ")
+        userInput = input("Please list the aid's of everyone who is featured on your song,\nseperated by spaces (not including yourself. Press ENTER if none):\n> ")
+        cursor.execute('''INSERT INTO perform VALUES (?,?)''', (artist, sidNew))
         inputChecker = userInput.split()
         if inputChecker != '':
-            result = [x.strip() for x in userInput.split(',')]
+            result = [x.strip() for x in userInput.split()]
             # assuming we don't need to validate aids for every feature
             for feature in result:
                 q = '''INSERT INTO perform 
                 VALUES (?, ?)'''
                 cursor.execute(q, (feature, sidNew))
                 connection.commit()
+
         print("Song %s has been successfully added in." % songExist)
 
 
@@ -323,8 +325,8 @@ def addSong(artist, cursor, connection):
             q = '''INSERT INTO songs 
                 VALUES(?, ?, ?)'''
             cursor.execute(q, (sidNew, title, duration,))
-            connection.commit()
             userInput = input("Please list the aid's of everyone who is featured on your song (hit ENTER if none): ")
+            cursor.execute('''INSERT INTO perform VALUES (?,?)''', (artist, sidNew))
             inputChecker = userInput.split()
             if inputChecker != '':
                 result = [x.strip() for x in userInput.split(',')]
@@ -333,8 +335,9 @@ def addSong(artist, cursor, connection):
                     q = '''INSERT INTO perform 
                     VALUES (?, ?)'''
                     cursor.execute(q, (feature, sidNew))
-                    connection.commit()
-            print("Song %s has been successfully added in." % songExist)
+            connection.commit()
+            print("Song %s has been successfully added in." % title)
+            return
         elif userInput == 'n':
             print("Song has not been added in.")
             return
@@ -344,18 +347,18 @@ def addSong(artist, cursor, connection):
 
 
 def topListen(artist, cursor, connection):
-    q = '''SELECT DISTINCT u.uid, a.name
+    q = '''SELECT DISTINCT u.uid, u.name
     FROM users u, sessions ses, listen l, artists a, perform p, songs s
     WHERE ses.uid = l.uid
         AND l.sid = p.sid
         AND p.aid = a.aid
-        AND a.aid = 'a1'
+        AND a.aid = ?
     ORDER BY l.cnt DESC
     LIMIT 3
     '''
-    cursor.execute(q)
+    cursor.execute(q, (artist,))
     top3U = cursor.fetchall()
-    connection.commit()
+    print("Top 3 users: ")
     for user in top3U:
         print(user)
 
@@ -366,16 +369,16 @@ def topListen(artist, cursor, connection):
                 songs s,
                 plinclude pi, 
                 playlists pl2
-        WHERE a.aid = 'a1'
+        WHERE a.aid = ?
              AND p.sid = s.sid
             AND pi.sid = s.sid
             AND a.aid = p.aid
         ORDER BY pl2.pid DESC)
     LIMIT 3
     '''
-    cursor.execute(q)
+    cursor.execute(q, (artist,))
     top3P = cursor.fetchall()
-    connection.commit()
+    print("Top 3 playlists: ")
     for playlist in top3P:
         print(playlist)
 
@@ -383,15 +386,14 @@ def topListen(artist, cursor, connection):
 def artist(artist, connection, cursor):
     """TODO: check if it works"""
     # artist is an aid of the user who logged in, used to check if a song exists or not
-    print(
-        "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter "
-        "'L' to logout.\nEnter 'Q' to close the program.")
-    userInput = input("> ")
-    userInput = userInput.lower().strip()
-
     check = True
-
     while check == True:
+        print(
+            "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter "
+            "'L' to logout.\nEnter 'Q' to close the program.")
+        userInput = input("> ")
+        userInput = userInput.lower().strip()
+
 
         if userInput != "a" and userInput != "f" and userInput != 'l' and userInput != 'q':
 
