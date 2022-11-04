@@ -99,7 +99,7 @@ def regSuccess(id, cursor):
         return False
 
 
-def register(cursor, connection):
+def register(connection, cursor):
     valid = True
     q = '''SELECT *
     FROM users
@@ -167,7 +167,7 @@ def idCheck(id, cursor):
 def userPwd(id, cursor):
     while True:
         print(
-            "Please enter the password for user %s, or press ENTER change user, or 'Q' to quit program." % id)
+            "Please enter the password for user %s, or press ENTER change user, or 'Q' to close the program." % id)
         pwd = getpass.getpass("> ")
         checkQuit(pwd)
         if pwd == "":
@@ -182,7 +182,7 @@ def userPwd(id, cursor):
 def artistPwd(id, cursor):
     while True:
         print(
-            "Please enter the password for artist %s, or press ENTER to exit, or 'Q' to quit program." % id)
+            "Please enter the password for artist %s, or press ENTER to exit, or 'Q' to close the program." % id)
         pwd = getpass.getpass("> ")
         checkQuit(pwd)
         if pwd == "":
@@ -479,8 +479,7 @@ def addToPlaylist(sessNo, userInput, user, connection, cursor):
     q = '''SELECT s.sid 
     FROM songs as s
     WHERE s.sid = ?'''
-    cursor.execute(q, userInput[
-        1])  # TODO: error incorrect number of bindings supplied. current statment uses 1, and there are 6 supplied
+    cursor.execute(q, userInput[1])  # TODO: error incorrect number of bindings supplied. current statment uses 1, and there are 6 supplied
     sid = cursor.fetchone()
     connection.commit()
     uInput = input(
@@ -520,7 +519,7 @@ def addToPlaylist(sessNo, userInput, user, connection, cursor):
     return
 
 
-def displayPlaylist(plID, cursor, connection):
+def displayPlaylist(plID, connection, cursor):
     q = '''SELECT s.sid, s.title, s.duration
                 FROM playlists as p, songs as s, plinclude as pl
                 WHERE  p.pid = pl.pid AND s.sid = pl.sid AND p.pid = ?
@@ -632,10 +631,10 @@ def displayArtist(cursor, aid):
         print(song)
 
 
-def selectSong(sid, sessNo, sessionStarted, cursor, connection):
+def selectSong(sid, sessNo, sessionStarted, connection, cursor):
     print(
         "Enter 'I' for the song information\nEnter 'L' to listen to the song\nEnter 'A' to add to a "
-        "playlist\nPress ENTER to leave the selected song")
+        "playlist\nPress ENTER to leave the selected song")  # TODO: doesn't leave
     uInput = input("> ")
     uInput = uInput.lower().strip()
 
@@ -722,19 +721,19 @@ def user(user, connection, cursor):
             elif results[selectedItem][2] == 0:
                 sid = results[selectedItem][0]
 
-                selectSong(sid, sessNo, sessionStarted, cursor, connection)
+                selectSong(sid, sessNo, sessionStarted, connection, cursor)
 
 
             elif results[selectedItem][2] == 1:
                 pid = str(results[selectedItem][0][0])
                 print(pid)
-                sid = displayPlaylist(pid, cursor, connection)
+                sid = displayPlaylist(pid, connection, cursor)
 
                 while True:
                     if sid == None:
                         break
                     elif cursor.execute("""SELECT * FROM songs WHERE sid = ?""", (sid,)).fetchone() != None:
-                        selectSong(sid, cursor, connection)
+                        selectSong(sid, sessNo, sessionStarted, connection, cursor)
                         break
                     else:
                         print("Invalid Input, please try again")
@@ -767,7 +766,7 @@ def user(user, connection, cursor):
             
             *** '''
 
-            userInput = input("Please enter keywords to search for an artist by spaces only.\n>")
+            userInput = input("Please enter keywords to search for an artist by spaces only.\n> ")
 
             keyWords = userInput.split()
             for word in keyWords:
@@ -833,7 +832,7 @@ def user(user, connection, cursor):
                                 print("Invalid input, please try again")
                                 sid = input("> ")
                             else:
-                                selectSong(sid, cursor, connection)
+                                selectSong(sid, sessNo, sessionStarted, connection, cursor)
 
 
 
@@ -888,7 +887,7 @@ def main():
 
             logReg = introLoop()
             if logReg == 'r':
-                valid, uid = register(cursor)
+                valid, uid = register(connection, cursor)
                 if valid:
                     initialDone = True
             elif logReg == 'l':
