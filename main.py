@@ -165,9 +165,6 @@ def userPwd(id, cursor):
     print("Please enter the password for your user account, or press enter to exit.")
     while True:
         pwd = getpass.getpass("> ")
-        checkQuit(pwd)
-        #todo is this going to raise issues if the password is in fact just q? do you want me to put in a minimum length password check? I worry about that breaking test data
-        #this is in fact going to raise issues but i am going to hold off taking it out until i can tell beta
         if pwd == "":
             return False
         cursor.execute("SELECT * FROM USERS WHERE uid LIKE ? AND pwd=?", (id, pwd))
@@ -181,8 +178,6 @@ def artistPwd(id, cursor):
     print("Please enter the password for your artist account, or press enter to exit.")
     while True:
         pwd = getpass.getpass("> ")
-        checkQuit(pwd)
-        #todo same issue as user password. i feel like it should be unquittable on this screen since len(pwd) is not regulated and has infinite possibilities
         if pwd == "":
             return False
         cursor.execute("SELECT * FROM artists WHERE aid LIKE ? AND pwd=?", (id, pwd))
@@ -204,7 +199,7 @@ def login(cursor):
     while success == False and valid == True:
 
         uidSuccess = False
-        print("Please enter your User ID, or press ENTER to exit:")  # TODO: checkQuit() or returning to prev session?
+        print("Please enter your User ID, or press ENTER to exit:")
         while uidSuccess == False and valid == True:
             uid = input("> ")
             if uid == "":
@@ -213,7 +208,7 @@ def login(cursor):
 
             user, artist = idCheck(uid, cursor)
             if user == False and artist == False:
-                print("No user with that username. Please try again, or press ENTER to exit.")  # TODO: checkQuit() or returning to prev session? no check quit
+                print("No user with that username. Please try again, or press ENTER to exit.")
                 break
             elif user == True and artist == False:
                 loginType = "user"
@@ -260,7 +255,6 @@ def addSong(artist, cursor, connection):
     exist we insert it, and then request an input about whom the features are, once provided do a for loop and add
     every feature Make sure to confirm that is either added in or exists"""
 
-    # TODO: check if it works it don't
 
     # get all songs and get len
     q = '''SELECT *
@@ -447,8 +441,8 @@ def startSess(cursor, connection):
 def endSess(sessNo, cursor, connection):
     """TODO: Check if it works"""
 
-    q = '''INSERT INTO sessions(end)
-    VALUES(datetime('now'))
+    q = '''UPDATE sessions SET end = (datetime('now'))
+
     WHERE sessions.sno = ?'''  # TODO: syntax error operational error near "WHERE"
     cursor.execute(q, (sessNo,))
     connection.commit()
@@ -645,7 +639,7 @@ def selectSong(sid, sessNo, sessionStarted, connection, cursor):
 
         #FIRST ARG IS SONG, RETRIEVE THE SONG FIRST
         songInfo(sid, cursor)
-    elif uInput == 'L':
+    elif uInput == 'l':
         '''a listening event is recorded within the current session of the user (if a session has already 
         started for the user) or within a new session (if not). When starting a new session, follow the 
         steps given for starting a session. A listening event is recorded by either inserting a row to 
@@ -922,3 +916,4 @@ main()
 #todo register hangs after registration, fix (registration successful just stop it from hanging)
 #todo login does a weird print, fix
 #todo if you try to logout as a user and then change your mind the program thinks you are an artist
+#todo search artist potentially busted
