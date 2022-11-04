@@ -379,11 +379,10 @@ def topListen(artist, cursor, connection):
         print(playlist)
 
 
-def artist(artist):
+def artist(artist, connection, cursor):
     """TODO: check if it works
        TODO: add a way to logout"""
     # artist is an aid of the user who logged in, used to check if a song exists or not
-    connection, cursor = connect(path)
     print(
         "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter "
         "'L' to logout.\nEnter 'Q' to close the program.")  # TODO: checkQuit()
@@ -686,12 +685,11 @@ def selectSong(sid, sessNo, sessionStarted, cursor, connection):
     return
 
 
-def user(user):
+def user(user, connection, cursor):
     """LOTS TO DO:
     ***___*** => things to start on
     """
     # user is an uid of the user to logged in
-    connection, cursor = connect(path)
     sessionStarted = False
     loggedIn = True
     while (loggedIn):
@@ -906,10 +904,10 @@ def main():
         while sessionDone == False and quitProgram == False:
 
             if userTitle == 'artist':
-                sessionDone = artist(id)
+                sessionDone = artist(id, connection, cursor)
                 sessionDone = True
             elif userTitle == 'user':
-                sessionDone = user(id)
+                sessionDone = user(id, connection, cursor)
                 sessionDone = True
 
 
