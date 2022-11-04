@@ -382,7 +382,7 @@ def artist(artist):
     connection, cursor = connect(path)
     print(
         "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter "
-        "'L' to logout.\nEnter 'E' to exit the program.")  # TODO: checkQuit()
+        "'L' to logout.\nEnter 'Q' to close the program.")  # TODO: checkQuit()
     userInput = input("> ")
     userInput = userInput.lower().strip()
 
@@ -390,7 +390,7 @@ def artist(artist):
 
     while check == True:
 
-        if userInput != "a" and userInput != "f" and userInput != 'l' and userInput != 'e':
+        if userInput != "a" and userInput != "f" and userInput != 'l' and userInput != 'q':
 
             print("Invalid input. Please try again.")
             userInput = input("> ")
@@ -406,10 +406,10 @@ def artist(artist):
                 return True
             elif userInput == 'n':
                 print(
-                    "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.\nEnter 'E' to exit the program.")
-                userInput = input("> ").lower().strip()  # TODO: checkQuit()
-        elif userInput == 'e':
-            endProg()
+                    "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.\nEnter 'Q' to close the program.")
+                userInput = input("> ").lower().strip()
+        elif userInput == 'q':
+            checkQuit(userInput)
 
     return True
 
@@ -833,7 +833,7 @@ def user(user):
 
 
 
-        elif userInput == 'd':  # TODO: move to after session starts
+        elif userInput == 'e':  # TODO: move to after session starts
             endSess(sessNo, cursor, connection)
             sessionStarted = False
 
@@ -846,13 +846,16 @@ def user(user):
                     return True
                 elif userInput == 'n':
                     print(
-                        "To start a session enter 'S'\n To search for a song or playlist enter 'P'\nEnter 'A' to search for an "
-                        "artist\nTo end the session enter 'D'\nTo logout enter 'L'\nTo exit the program press 'E'  ")  # TODO: checkQuit()
+                        "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.\nEnter 'Q' to close the program.")
+                    userInput = input("> ").lower().strip()
+                    print(
+                        "Enter 'S' to start a session\n Enter 'P' to search for a song or playlist\nEnter 'A' to search for an "
+                        "artist\nEnter 'E' to end the session\nEnter 'L' to logout\nEnter 'Q' to close the program")  # TODO: checkQuit()
                     userInput = input("> ").lower().split()
                 else:
                     print("Invalid input, try again.")
-        elif userInput == 'e':
-            endProg()
+        elif userInput == 'q':
+            checkQuit(userInput)
     return True
 
 
@@ -889,7 +892,7 @@ def main():
 
             elif logReg == 'q':
                 quitProgram = True
-                print("Thank you.")
+                print("Terminating program...goodbye.")
                 break
 
         sessionDone = False
@@ -905,5 +908,3 @@ def main():
 
 
 main()
-
-# todo register hangs after registration, fix (registration successful just stop it from hanging)
