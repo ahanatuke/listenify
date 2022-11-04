@@ -35,10 +35,10 @@ def introLoop():
 def checkQuit(uInput):
     # TODO: @alinn check if it works
     if uInput.lower().strip() == 'q':
-        print("Would you like to quit the program?")
+        print("Would you like to quit the program? [Y/N]")
         quit = input('> ')
 
-        if quit:
+        if quit.lower().strip() == 'y':
             exit()
 
 
@@ -148,7 +148,7 @@ def idCheck(id, cursor):
 
 
 def userPwd(id, cursor):
-    print("Please enter the password for your user account, or press enter to exit.")
+    print("Please enter the password for user %s, or press enter change user or to exit." % uid) # TODO: extra print 1
     while True:
         pwd = getpass.getpass("> ")
         if pwd == "":
@@ -230,7 +230,6 @@ def login(cursor):
 
         pwdSuccess = False
         if valid == True:
-            print("Please enter the password for user %s, or press enter to change user" % uid)
             if loginType == "user":
                 pwdSuccess = userPwd(uid, cursor)
             elif loginType == "artist":
@@ -482,7 +481,7 @@ def addToPlaylist(sessNo, userInput, user, cursor, connection):
     q = '''SELECT s.sid 
     FROM songs as s
     WHERE s.sid = ?'''
-    cursor.execute(q, userInput[1])
+    cursor.execute(q, userInput[1]) # TODO: error incorrect number of bindings supplied. current statment uses 1, and there are 6 supplied
     sid = cursor.fetchone()
     connection.commit()
     uInput = input("Enter 'N' to insert this into a new playlist\nEnter 'A' to add into an existing playlist\n> ").lower().strip()
@@ -683,7 +682,7 @@ def selectSong(sid, sessNo, sessionStarted, cursor, connection):
         created with a unique id (created by your system) and the uid set to the id of the user and a 
         title should be obtained from input. '''
 
-        addToPlaylist(sessNo, sid, user)
+        addToPlaylist(sessNo, sid, user, cursor, connection)
     else:
         print("Invalid input. Try again.")
     return
@@ -698,8 +697,8 @@ def user(user):
     loggedIn = True
     while(loggedIn):
         print(
-        "To start a session enter 'S'\nTo search for a song or playlist enter 'P'\nEnter 'A' to search for an "
-        "artist\nTo end the session enter 'D'\nTo logout enter 'L'\nTo exit the program press 'E'  ")
+        "To start a session enter 'S'\nTo search for a song or playlist enter 'P'\nTo search for an artist enter 'A' "
+        "artist\nTo end the session enter 'D'\nTo logout enter 'L'\nTo exit the program press 'E'  ") # TODO: remove end session and move to after session starts # TODO: perhaps update the exit program with the checkQuit()
         userInput = input("> ")
         userInput = userInput.lower().strip()
         sessNo = 0
@@ -711,7 +710,7 @@ def user(user):
             # FOCUS ON: Either having it be one input split into an array or requesting multiple inputs for keywords (probably the best????)
             # must indicate if playlist or song is displayed
 
-            userInput = input("Please enter keywords to search for playlists or songs by spaces only.\n>")
+            userInput = input("Please enter keywords to search for playlists or songs by spaces only.\n> ")
 
             # get the keywords into an array
             keyWords = userInput.split()
@@ -762,7 +761,8 @@ def user(user):
 
 
         elif userInput == 'a':
-            ''' ***TO DO: find artist by keywords. 
+            # TODO: find artist by keywords.
+            ''' ***TODO: find artist by keywords. 
             
             The user should be able to provide one or more unique keywords, and the system should retrieve all artists 
             that have any of those keywords either in their names or in the title of a song they have performed. For each 
@@ -819,17 +819,17 @@ def user(user):
 
                 if selectedArtist == None:
                     pass
-                #todo do the quit
+                #todo do the quit, call checkQuit()
                 else:
                     artist = items[selectedArtist]
                     cursor.execute("""SELECT aid FROM artists WHERE name = ? AND nationality = ?""", (artist[0], artist[1]))
                     aid = str(cursor.fetchone()[0])
 
                     displayArtist(cursor, aid)
-                    print("Enter song id to see more info, or press Enter to quit")
+                    print("Enter song id to see more info, or press Enter to quit") # TODO: also use checkQuit()
                     sid = input("> ")
                     if sid == None:
-                        pass#todo the quit thing
+                        pass#todo the quit thing, call checkQuit()
                     else:
                         while True:
                             cursor.execute('''SELECT * FROM songs WHERE sid = ?''', (sid,))
@@ -841,7 +841,7 @@ def user(user):
 
 
 
-        elif userInput == 'd':
+        elif userInput == 'd': # TODO: move to after session starts
             endSess(sessNo, cursor, connection)
             sessionStarted = False
             
@@ -871,7 +871,6 @@ def main():
     print("291 Mini-Project 1\n")
 
     print("By Anya Hanatuke, Alinn Martinez, and Ayaan Jutt\n")
-    # todo link database using URL
     #global path
 
     path = input("Please enter a database\n> ")
@@ -919,4 +918,3 @@ main()
 
 
 #todo register hangs after registration, fix (registration successful just stop it from hanging)
-#todo login does a weird print, fix
