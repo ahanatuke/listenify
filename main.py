@@ -528,7 +528,7 @@ def displayPlaylist(plID, connection, cursor):
     for song in pSongs:
         print(song)
 
-    print("Enter a song ID for more information or press ENTER to exit")  # TODO: checkQuit() or returning to prev session?
+    print("Enter a song ID for more information or press ENTER to exit")
     while True:
         userInput = input("> ")
         if userInput == "":
@@ -637,7 +637,6 @@ def selectSong(sid, sessNo, sessionStarted, connection, cursor):
 
     # set up a while loop here
     if uInput == 'i':
-
         #FIRST ARG IS SONG, RETRIEVE THE SONG FIRST
         songInfo(sid, cursor)
     elif uInput == 'l':
@@ -689,9 +688,10 @@ def user(user, connection, cursor):
     while (loggedIn):
         print(
             "Enter 'S' to start a session\nEnter 'P' to search for a song or playlist\nEnter 'A' to search for an "
-            "artist\nEnter 'E' to end the session\nEnter 'L' to logout\nEnter 'Q' to close the program")  # TODO: remove end session and move to after session starts # TODO: perhaps update the exit program with quit and  use checkQuit()
+            "artist\nEnter 'E' to end the session\nEnter 'L' to logout\nEnter 'Q' to close the program")  # TODO: remove end session and move to after session starts
         userInput = input("> ")
         userInput = userInput.lower().strip()  # TODO: doesn't seem to overwrite at times??
+        checkQuit(userInput)
         sessNo = 0
         if userInput == 's':
             sessNo = startSess(cursor, connection)
@@ -804,9 +804,7 @@ def user(user, connection, cursor):
                 selectedArtist = utilities.paginate(items)
 
                 if selectedArtist == None:
-                    pass
-                    # exit()
-                # todo do the quit, call checkQuit()?
+                    return
                 else:
                     artist = items[selectedArtist]
                     cursor.execute("""SELECT aid FROM artists WHERE name = ? AND nationality = ?""", (artist[0], artist[1]))
@@ -814,13 +812,10 @@ def user(user, connection, cursor):
 
                     displayArtist(cursor, aid)
                     print(
-                        "Enter song id to see more info, or press ENTER to exit")  # TODO: also use checkQuit() or are we returning to prev session?
+                        "Enter song id to see more info, or press ENTER to exit")
                     sid = input("> ")
-                    # checkQuit(sid)
-                    # todo why is this commented
                     if sid == None:
-                        pass  # todo the quit thing, call checkQuit()?
-                        # exit()
+                        return
                     else:
                         while True:
                             cursor.execute('''SELECT * FROM songs WHERE sid = ?''', (sid,))
