@@ -32,15 +32,30 @@ def introLoop():
     return userInput
 
 
-def checkQuit(uInput):
-    # TODO: @alinn check if it works
-    if uInput.lower().strip() == 'q':
-        print("Would you like to quit the program? [Y/N]")
-        quit = input('> ')
+def checkQuit(userInput):
+    if userInput.lower().strip() == 'q':
+        quit = input("Would you like to close the program? [Y/N]\n> ").lower().strip()
 
-        if quit.lower().strip() == 'y':
+        if quit == 'y':
+            print("Program terminating...goodbye.")
             exit()
+        elif quit != 'n':
+            print("Invalid input, please try again.")
+            checkQuit(userInput)
 
+"""
+# replaced with checkQuit()
+def endProg():
+    userInput = input("Would you like to close the program? [Y/N]\n> ")
+    userInput = userInput.lower().strip()
+    if userInput == 'y':
+        exit()
+    elif userInput == 'n':
+        return
+    else:
+        userInput = input(
+            "Invalid input, please try again.\nWould you like to close the program? [Y/N]\n> ").lower().split()
+"""
 
 ############################## REGISTER ###############################
 
@@ -173,18 +188,6 @@ def artistPwd(id, cursor):
             print("Incorrect password: please try again or press ENTER to exit.")  # TODO: checkQuit()
 
 
-def endProg():
-    userInput = input("Would you like to close the program? [Y/N]\n> ")
-    userInput = userInput.lower().strip()
-    if userInput == 'y':
-        exit()
-    elif userInput == 'n':
-        return
-    else:
-        userInput = input(
-            "Invalid input, please try again.\nWould you like to close the program? [Y/N]\n> ").lower().split()
-
-
 def login(cursor):
     """Login: nested loop unfortunately get ready for this to run in O(n^2)"""
     success = False
@@ -310,7 +313,7 @@ def addSong(artist, cursor, connection):
 
 
     else:
-        print("This song already exists, would you like to add it again? [Y/N/E to close program] ")  # TODO: checkQuit() use Q instead of E
+        print("This song already exists, would you like to add it again? [Y/N/Q to close program] ")
         userInput = input("> ").lower().strip()
         if userInput == 'y':
             q = '''INSERT INTO songs 
@@ -331,8 +334,8 @@ def addSong(artist, cursor, connection):
         elif userInput == 'n':
             print("Song has not been added in.")
             return
-        elif userInput == 'e':
-            endProg()
+        elif userInput == 'q':
+            checkQuit(userInput)
     return
 
 
@@ -547,7 +550,7 @@ def orderByKWP(cursor, keyWords):
     for word in keyWords:
         cursor.execute("""SELECT s.sid, s.title, s.duration
                             FROM songs as s
-                            WHERE s.title LIKE ? """, ("%" + word.strip().lower() + "%",))
+                            WHERE s.title LIKE ? """, ("%" + word.lower().strip() + "%",))
 
         matchedSongs = cursor.fetchall()
         for song in matchedSongs:
@@ -571,7 +574,7 @@ def orderByKWP(cursor, keyWords):
 
         cursor.execute("""SELECT p.pid, p.title
                             FROM playlists as p
-                            WHERE p.title LIKE ? """, ("%" + word.strip().lower() + "%",))
+                            WHERE p.title LIKE ? """, ("%" + word.lower().strip() + "%",))
         # todo get total duration
 
         matchedPlaylists = cursor.fetchall()
@@ -844,7 +847,7 @@ def user(user):
                 elif userInput == 'n':
                     print(
                         "To start a session enter 'S'\n To search for a song or playlist enter 'P'\nEnter 'A' to search for an "
-                        "artist\nTo end the session enter 'D'\nTo logout enter 'L'\nTo exit the program press 'E'  ")
+                        "artist\nTo end the session enter 'D'\nTo logout enter 'L'\nTo exit the program press 'E'  ")  # TODO: checkQuit()
                     userInput = input("> ").lower().split()
                 else:
                     print("Invalid input, try again.")
