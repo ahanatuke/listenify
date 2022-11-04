@@ -767,7 +767,7 @@ def user(user, connection, cursor):
             
             *** '''
 
-            userInput = input("Please enter keywords to search for an artist by spaces only.\n>")
+            userInput = input("Please enter keywords to search for an artist by spaces only.\n> ")
 
             keyWords = userInput.split()
             for word in keyWords:
@@ -833,7 +833,7 @@ def user(user, connection, cursor):
                                 print("Invalid input, please try again")
                                 sid = input("> ")
                             else:
-                                selectSong(sid, connection, cursor)
+                                selectSong(sid, sessNo, sessionStarted, connection, cursor)
 
 
 
