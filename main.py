@@ -479,8 +479,7 @@ def addToPlaylist(sessNo, userInput, user, connection, cursor):
     q = '''SELECT s.sid 
     FROM songs as s
     WHERE s.sid = ?'''
-    cursor.execute(q, userInput[
-        1])  # TODO: error incorrect number of bindings supplied. current statment uses 1, and there are 6 supplied
+    cursor.execute(q, userInput[1])  # TODO: error incorrect number of bindings supplied. current statment uses 1, and there are 6 supplied
     sid = cursor.fetchone()
     connection.commit()
     uInput = input(
@@ -635,7 +634,7 @@ def displayArtist(cursor, aid):
 def selectSong(sid, sessNo, sessionStarted, connection, cursor):
     print(
         "Enter 'I' for the song information\nEnter 'L' to listen to the song\nEnter 'A' to add to a "
-        "playlist\nPress ENTER to leave the selected song")
+        "playlist\nPress ENTER to leave the selected song")  # TODO: doesn't leave
     uInput = input("> ")
     uInput = uInput.lower().strip()
 
