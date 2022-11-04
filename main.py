@@ -167,7 +167,7 @@ def idCheck(id, cursor):
 def userPwd(id, cursor):
     while True:
         print(
-            "Please enter the password for user %s, or press ENTER change user, or 'Q' to quit program." % id)
+            "Please enter the password for user %s, or press ENTER change user, or 'Q' to close the program." % id)
         pwd = getpass.getpass("> ")
         checkQuit(pwd)
         if pwd == "":
@@ -182,7 +182,7 @@ def userPwd(id, cursor):
 def artistPwd(id, cursor):
     while True:
         print(
-            "Please enter the password for artist %s, or press ENTER to exit, or 'Q' to quit program." % id)
+            "Please enter the password for artist %s, or press ENTER to exit, or 'Q' to close the program." % id)
         pwd = getpass.getpass("> ")
         checkQuit(pwd)
         if pwd == "":
