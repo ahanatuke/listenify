@@ -812,7 +812,8 @@ def user(user, connection, cursor):
 
                 if selectedArtist is None:
                     pass
-                # todo do the quit, call checkQuit()
+                    # exit()
+                # todo do the quit, call checkQuit()?
                 else:
                     artist = items[selectedArtist]
                     cursor.execute("""SELECT aid FROM artists WHERE name = ? AND nationality = ?""",
@@ -820,10 +821,13 @@ def user(user, connection, cursor):
                     aid = str(cursor.fetchone()[0])
 
                     displayArtist(cursor, aid)
-                    print("Enter song id to see more info, or press ENTER to quit")  # TODO: also use checkQuit()
+                    print(
+                        "Enter song id to see more info, or press ENTER to exit")  # TODO: also use checkQuit() or are we returning to prev session?
                     sid = input("> ")
+                    # checkQuit(sid)
                     if sid == None:
-                        pass  # todo the quit thing, call checkQuit()
+                        pass  # todo the quit thing, call checkQuit()?
+                        # exit()
                     else:
                         while True:
                             cursor.execute('''SELECT * FROM songs WHERE sid = ?''', (sid,))
