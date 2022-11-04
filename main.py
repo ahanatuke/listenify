@@ -35,7 +35,7 @@ def introLoop():
 def checkQuit(uInput):
     # TODO: @alinn check if it works
     if uInput.lower().strip() == 'q':
-        print("Would you like to quit the program? [Y/N]: \n")
+        print("Would you like to quit the program? [Y/N]")
         quit = input('> ')
 
         if quit.lower().strip() == 'y':
@@ -102,7 +102,7 @@ def register(cursor, connection):
 
     inputU, inputN, inputP = regInputs(suggestion, cursor)
 
-    reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
+    reEnter = input("Keep the following information? [Y/N]\n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
     check = False
 
     while check == False:
@@ -124,7 +124,7 @@ def register(cursor, connection):
             break
         else:
             print("Invalid input. Please try again.")
-            reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
+            reEnter = input("Keep the following information? [Y/N]\n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
 
     return valid, inputU
 
@@ -310,8 +310,8 @@ def addSong(artist, cursor, connection):
 
 
     else:
-        print("This song already exists, would you like to add it again? [Y/N/E to close program] ")
-        userInput = input("> ").lower.strip()
+        print("This song already exists, would you like to add it again? [Y/N/E to close program] ")  # TODO: checkQuit() use Q instead of E
+        userInput = input("> ").lower().strip()
         if userInput == 'y':
             q = '''INSERT INTO songs 
                 VALUES(?, ?, ?)'''
@@ -378,7 +378,7 @@ def artist(artist):
     # artist is an aid of the user who logged in, used to check if a song exists or not
     connection, cursor = connect(path)
     print(
-        "Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter "  # TODO: change S to A
+        "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter "
         "'L' to logout.\nEnter 'E' to exit the program.")  # TODO: checkQuit()
     userInput = input("> ")
     userInput = userInput.lower().strip()
@@ -387,12 +387,12 @@ def artist(artist):
 
     while check == True:
 
-        if userInput != "s" and userInput != "f" and userInput != 'l' and userInput != 'e':
+        if userInput != "a" and userInput != "f" and userInput != 'l' and userInput != 'e':
 
             print("Invalid input. Please try again.")
             userInput = input("> ")
             userInput = userInput.lower().strip()
-        elif userInput == 's':  # TODO: change S to A
+        elif userInput == 'a':
             addSong(artist, cursor, connection)
         elif userInput == 'f':
             topListen(artist, cursor, connection)
@@ -403,7 +403,7 @@ def artist(artist):
                 return True
             elif userInput == 'n':
                 print(
-                    "Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.\nEnter 'E' to exit the program.")  # TODO: change S to A
+                    "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.\nEnter 'E' to exit the program.")
                 userInput = input("> ").lower().strip()  # TODO: checkQuit()
         elif userInput == 'e':
             endProg()
