@@ -131,6 +131,7 @@ def register(cursor, connection):
             cursor.execute(q, (inputU, inputN, inputP))
             connection.commit()
             valid = regSuccess(inputU, cursor)
+            return valid, inputU
             break
         elif reEnter == "":
             valid = False
@@ -141,7 +142,7 @@ def register(cursor, connection):
             reEnter = input(
                 "Keep the following information? [Y/N]\n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
 
-    return valid, inputU
+
 
 
 ############################## END OF REGISTER ###############################
@@ -443,7 +444,7 @@ def endSess(sessNo, cursor, connection):
 
     q = '''UPDATE sessions SET end = (datetime('now'))
 
-    WHERE sessions.sno = ?'''  # TODO: syntax error operational error near "WHERE"
+    WHERE sessions.sno = ?'''
     cursor.execute(q, (sessNo,))
     connection.commit()
 
@@ -480,7 +481,7 @@ def addToPlaylist(sessNo, userInput, user, connection, cursor):
     connection.commit()
     uInput = input(
         "Enter 'N' to insert this into a new playlist\nEnter 'A' to add into an existing playlist\n> ").lower().strip()
-    if uInput == 'n':  # TODO: error Incorrect number of bindings supplied. The current statement uses 1, and there are 6 supplied
+    if uInput == 'n':
         q = '''SELECT *
         from playlists'''
         cursor.execute(q)
@@ -876,16 +877,19 @@ def main():
 
     quitProgram = False
     userTitle = ""
+    initialDone = False
 
     while quitProgram == False:
-        initialDone = False
         while initialDone == False and quitProgram == False:
 
             logReg = introLoop()
             if logReg == 'r':
-                valid, uid = register(connection, cursor)
+                valid, id = register(cursor, connection)
+                userTitle = 'user'
                 if valid:
                     initialDone = True
+                    break
+
             elif logReg == 'l':
                 valid, id, userTitle = login(cursor)
                 if valid:
