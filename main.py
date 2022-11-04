@@ -206,7 +206,7 @@ def login(cursor):
     while success == False and valid == True:
 
         uidSuccess = False
-        print("Please enter your User ID, or press ENTER to exit:")  # TODO: checkQuit()
+        print("Please enter your User ID, or press ENTER to exit:")  # TODO: checkQuit() or returning to prev session?
         while uidSuccess == False and valid == True:
             uid = input("> ")
             if uid == "":
@@ -215,7 +215,7 @@ def login(cursor):
 
             user, artist = idCheck(uid, cursor)
             if user == False and artist == False:
-                print("No user with that username. Please try again, or press ENTER to exit.")  # TODO: checkQuit()
+                print("No user with that username. Please try again, or press ENTER to exit.")  # TODO: checkQuit() or returning to prev session?
                 break
             elif user == True and artist == False:
                 loginType = "user"
@@ -476,8 +476,6 @@ def songInfo(song, connection, cursor):
 
 
 def addToPlaylist(sessNo, userInput, user, connection, cursor):
-    # todo: just pass the cursor, don't do this
-
     q = '''SELECT s.sid 
     FROM songs as s
     WHERE s.sid = ?'''
@@ -534,7 +532,7 @@ def displayPlaylist(plID, cursor, connection):
     for song in pSongs:
         print(song)
 
-    print("Enter a song ID for more information or press ENTER to exit")  # TODO: checkQuit()
+    print("Enter a song ID for more information or press ENTER to exit")  # TODO: checkQuit() or returning to prev session?
     while True:
         userInput = input("> ")
         if userInput == "":
