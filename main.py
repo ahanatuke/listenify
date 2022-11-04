@@ -35,7 +35,7 @@ def introLoop():
 def checkQuit(uInput):
     # TODO: @alinn check if it works
     if uInput.lower().strip() == 'q':
-        print("Would you like to quit the program? [Y/N]: \n")
+        print("Would you like to quit the program? [Y/N]")
         quit = input('> ')
 
         if quit.lower().strip() == 'y':
@@ -102,7 +102,7 @@ def register(cursor, connection):
 
     inputU, inputN, inputP = regInputs(suggestion, cursor)
 
-    reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
+    reEnter = input("Keep the following information? [Y/N]\n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
     check = False
 
     while check == False:
@@ -124,7 +124,7 @@ def register(cursor, connection):
             break
         else:
             print("Invalid input. Please try again.")
-            reEnter = input("Keep the following [Y/N]?: \n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
+            reEnter = input("Keep the following information? [Y/N]\n" + inputU + "\n" + inputN + " \n(Press ENTER to cancel) ")
 
     return valid, inputU
 
@@ -310,8 +310,8 @@ def addSong(artist, cursor, connection):
 
 
     else:
-        print("This song already exists, would you like to add it again? [Y/N/E to close program] ")
-        userInput = input("> ").lower.strip()
+        print("This song already exists, would you like to add it again? [Y/N/E to close program] ")  # TODO: checkQuit() use Q instead of E
+        userInput = input("> ").lower().strip()
         if userInput == 'y':
             q = '''INSERT INTO songs 
                 VALUES(?, ?, ?)'''
