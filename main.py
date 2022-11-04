@@ -165,30 +165,33 @@ def idCheck(id, cursor):
 
 
 def userPwd(id, cursor):
-    print(
-        "Please enter the password for user %s, or press ENTER change user or 'Q' to quit program." % id)  # TODO: add quit func, checkQuit() OR  have it return back to first screen
     while True:
+        print(
+            "Please enter the password for user %s, or press ENTER change user, or 'Q' to quit program." % id)
         pwd = getpass.getpass("> ")
+        checkQuit(pwd)
         if pwd == "":
             return False
         cursor.execute("SELECT * FROM USERS WHERE uid LIKE ? AND pwd=?", (id, pwd))
         if cursor.fetchone() is not None:
             return True
         else:
-            print("Incorrect password: please try again or press ENTER to exit.")  # TODO: checkQuit()
+            print("Incorrect password, please try again.")
 
 
 def artistPwd(id, cursor):
-    print("Please enter the password for your artist account, or press ENTER to exit.")  # TODO: checkQuit()
     while True:
+        print(
+            "Please enter the password for artist %s, or press ENTER to exit, or 'Q' to quit program." % id)
         pwd = getpass.getpass("> ")
+        checkQuit(pwd)
         if pwd == "":
             return False
         cursor.execute("SELECT * FROM artists WHERE aid LIKE ? AND pwd=?", (id, pwd))
         if cursor.fetchone() is not None:
             return True
         else:
-            print("Incorrect password: please try again or press ENTER to exit.")  # TODO: checkQuit()
+            print("Incorrect password, please try again.")
 
 
 def login(cursor):
@@ -380,12 +383,11 @@ def topListen(artist, cursor, connection):
 
 
 def artist(artist, connection, cursor):
-    """TODO: check if it works
-       TODO: add a way to logout"""
+    """TODO: check if it works"""
     # artist is an aid of the user who logged in, used to check if a song exists or not
     print(
         "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter "
-        "'L' to logout.\nEnter 'Q' to close the program.")  # TODO: checkQuit()
+        "'L' to logout.\nEnter 'Q' to close the program.")
     userInput = input("> ")
     userInput = userInput.lower().strip()
 
