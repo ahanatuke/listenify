@@ -1,7 +1,4 @@
-""" NOTE: this file will only run if init_db.py has been run
-    at least once. otherwise, tables are never created.
-    This must be fixed before handing in. """
-# todo fix
+
 
 from audioop import add
 from logging import exception
@@ -64,8 +61,8 @@ def endProg():
 def regInputs(suggestion, cursor):
     validUid = False
     print("Suggested user ID: " + suggestion)
-    while not validUid:
-        inputU = input("Please enter a user id (max 4 characters), or press ENTER to use the suggested: ")
+    while validUid == False:
+        inputU = input("Please enter a user id (max 4 characters), or press enter to use the suggested: ")
         if inputU == "":
             inputU = suggestion
             validUid = True
@@ -73,7 +70,7 @@ def regInputs(suggestion, cursor):
             print("User ID is too long. ID can be at most 4 characters.")
         else:
             cursor.execute("""SELECT * FROM users WHERE uid = ?""", (inputU,))
-            if cursor.fetchone() is None:
+            if cursor.fetchone() == None:
                 validUid = True
             else:
                 print("User ID is already taken.")
@@ -99,7 +96,7 @@ def regSuccess(id, cursor):
         return False
 
 
-def register(connection, cursor):
+def register(cursor, connection):
     valid = True
     q = '''SELECT *
     FROM users
@@ -165,26 +162,27 @@ def idCheck(id, cursor):
 
 
 def userPwd(id, cursor):
+    print("Please enter the password for your user account, or press enter to exit.")
     while True:
-        print(
-            "Please enter the password for user %s, or press ENTER change user, or 'Q' to close the program." % id)
         pwd = getpass.getpass("> ")
         checkQuit(pwd)
+        #todo is this going to raise issues if the password is in fact just q? do you want me to put in a minimum length password check? I worry about that breaking test data
+        #this is in fact going to raise issues but i am going to hold off taking it out until i can tell beta
         if pwd == "":
             return False
         cursor.execute("SELECT * FROM USERS WHERE uid LIKE ? AND pwd=?", (id, pwd))
-        if cursor.fetchone() is not None:
+        if cursor.fetchone() != None:
             return True
         else:
-            print("Incorrect password, please try again.")
+            print("Incorrect password: please try again or press enter to exit.")
 
 
 def artistPwd(id, cursor):
+    print("Please enter the password for your artist account, or press enter to exit.")
     while True:
-        print(
-            "Please enter the password for artist %s, or press ENTER to exit, or 'Q' to close the program." % id)
         pwd = getpass.getpass("> ")
         checkQuit(pwd)
+        #todo same issue as user password. i feel like it should be unquittable on this screen since len(pwd) is not regulated and has infinite possibilities
         if pwd == "":
             return False
         cursor.execute("SELECT * FROM artists WHERE aid LIKE ? AND pwd=?", (id, pwd))
@@ -215,7 +213,7 @@ def login(cursor):
 
             user, artist = idCheck(uid, cursor)
             if user == False and artist == False:
-                print("No user with that username. Please try again, or press ENTER to exit.")  # TODO: checkQuit() or returning to prev session?
+                print("No user with that username. Please try again, or press ENTER to exit.")  # TODO: checkQuit() or returning to prev session? no check quit
                 break
             elif user == True and artist == False:
                 loginType = "user"
@@ -223,7 +221,7 @@ def login(cursor):
             elif user == False and artist == True:
                 loginType = "artist"
                 break
-            elif user == True and artist == True:  # TODO: never hits this line when logging in as artist
+            elif user == True and artist == True:  # works as intended
                 print("Press 'A' to login as an artist. Press 'U' to login as a user.")
                 while True:
                     loginTypeInput = input("> ")
@@ -262,7 +260,7 @@ def addSong(artist, cursor, connection):
     exist we insert it, and then request an input about whom the features are, once provided do a for loop and add
     every feature Make sure to confirm that is either added in or exists"""
 
-    # TODO: check if it works
+    # TODO: check if it works it don't
 
     # get all songs and get len
     q = '''SELECT *
@@ -278,43 +276,45 @@ def addSong(artist, cursor, connection):
 
     print("Please enter the following song information: ")
     title = input("Title: ")
-    duration = input("Duration (in seconds): ")  # TODO: hangs after entering seconds
+    duration = input("Duration (in seconds): ")
     check = True
-    while check:
+    while check == True:
         try:
             duration = int(duration)
             if duration < 0:
                 raise Exception
-            check = True
+            check = False
         except:
             print("Invalid number please try again.")
             duration = input("Duration (in seconds): ")
     # CHECK IF THE SONG EXISTS
     q = '''SELECT  s.title, s.duration
         FROM songs as s, artists as a, perform as p
-        WHERE s.title = ? AND s.duration = ? AND a.aid = ? AND p.sid = s.sid AND p.aid = a.aid 
+        WHERE s.title LIKE ? AND s.duration = ? AND a.aid LIKE ? AND p.sid = s.sid AND p.aid = a.aid 
         '''
+
+
     cursor.execute(q, (title, duration, artist,))
     # 1 song should exist like this, len of fetchone = 0 it should be unique HYPOTHETICALLY
-    songExist = cursor.fetchone()
-    connection.commit()
+    songExist = cursor.fetchall()
 
-    if songExist is None:
-
+    if songExist == None:
         q = '''INSERT INTO songs 
         VALUES(?, ?, ?)'''
         cursor.execute(q, (sidNew, title, duration,))
         connection.commit()
-        userInput = input("Please list the aid's of everyone who is featured on your song (hit ENTER if none): ")
+        userInput = input("Please list the aid's of everyone who is featured on your song,\nseperated by spaces (not including yourself. Press ENTER if none):\n> ")
+        cursor.execute('''INSERT INTO perform VALUES (?,?)''', (artist, sidNew))
         inputChecker = userInput.split()
         if inputChecker != '':
-            result = [x.strip() for x in userInput.split(',')]
+            result = [x.strip() for x in userInput.split()]
             # assuming we don't need to validate aids for every feature
             for feature in result:
                 q = '''INSERT INTO perform 
                 VALUES (?, ?)'''
                 cursor.execute(q, (feature, sidNew))
                 connection.commit()
+
         print("Song %s has been successfully added in." % songExist)
 
 
@@ -325,8 +325,8 @@ def addSong(artist, cursor, connection):
             q = '''INSERT INTO songs 
                 VALUES(?, ?, ?)'''
             cursor.execute(q, (sidNew, title, duration,))
-            connection.commit()
             userInput = input("Please list the aid's of everyone who is featured on your song (hit ENTER if none): ")
+            cursor.execute('''INSERT INTO perform VALUES (?,?)''', (artist, sidNew))
             inputChecker = userInput.split()
             if inputChecker != '':
                 result = [x.strip() for x in userInput.split(',')]
@@ -335,8 +335,9 @@ def addSong(artist, cursor, connection):
                     q = '''INSERT INTO perform 
                     VALUES (?, ?)'''
                     cursor.execute(q, (feature, sidNew))
-                    connection.commit()
-            print("Song %s has been successfully added in." % songExist)
+            connection.commit()
+            print("Song %s has been successfully added in." % title)
+            return
         elif userInput == 'n':
             print("Song has not been added in.")
             return
@@ -346,18 +347,18 @@ def addSong(artist, cursor, connection):
 
 
 def topListen(artist, cursor, connection):
-    q = '''SELECT DISTINCT u.uid, a.name
+    q = '''SELECT DISTINCT u.uid, u.name
     FROM users u, sessions ses, listen l, artists a, perform p, songs s
     WHERE ses.uid = l.uid
         AND l.sid = p.sid
         AND p.aid = a.aid
-        AND a.aid = 'a1'
+        AND a.aid = ?
     ORDER BY l.cnt DESC
     LIMIT 3
     '''
-    cursor.execute(q)
+    cursor.execute(q, (artist,))
     top3U = cursor.fetchall()
-    connection.commit()
+    print("Top 3 users: ")
     for user in top3U:
         print(user)
 
@@ -368,16 +369,16 @@ def topListen(artist, cursor, connection):
                 songs s,
                 plinclude pi, 
                 playlists pl2
-        WHERE a.aid = 'a1'
+        WHERE a.aid = ?
              AND p.sid = s.sid
             AND pi.sid = s.sid
             AND a.aid = p.aid
         ORDER BY pl2.pid DESC)
     LIMIT 3
     '''
-    cursor.execute(q)
+    cursor.execute(q, (artist,))
     top3P = cursor.fetchall()
-    connection.commit()
+    print("Top 3 playlists: ")
     for playlist in top3P:
         print(playlist)
 
@@ -385,15 +386,14 @@ def topListen(artist, cursor, connection):
 def artist(artist, connection, cursor):
     """TODO: check if it works"""
     # artist is an aid of the user who logged in, used to check if a song exists or not
-    print(
-        "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter "
-        "'L' to logout.\nEnter 'Q' to close the program.")
-    userInput = input("> ")
-    userInput = userInput.lower().strip()
-
     check = True
+    while check == True:
+        print(
+            "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter "
+            "'L' to logout.\nEnter 'Q' to close the program.")
+        userInput = input("> ")
+        userInput = userInput.lower().strip()
 
-    while check:
 
         if userInput != "a" and userInput != "f" and userInput != 'l' and userInput != 'q':
 
@@ -456,30 +456,32 @@ def endSess(sessNo, cursor, connection):
     return
 
 
-def songInfo(song, connection, cursor):
+def songInfo(song, cursor):
     # song = sid
     """ Finish the query """
 
     # get artist name, sid, title and duration + any playlist the song is in
-    q = '''SELECT a.name, s.sid, s.title, s.duration, pl.title 
-    FROM artists a, perform pf, songs s, playlists pl, plinclude pli
-    WHERE a.aid = pf.aid
-    AND pf.sid = ?
-    AND pli.sid = ?
-    AND pli.pid = pl.pid'''
-    cursor.execute(q, (song[0], song[0]))
-    songInfo2 = cursor.fetchone()
-    connection.commit()
+    print("Song ID, Title, Duration: ")
+    cursor.execute('''SELECT sid, title, duration FROM songs where sid = ?''', (song[0],))
+    print(cursor.fetchone())
+    print("Artist:")
+    cursor.execute('''SELECT a.name FROM artists a, perform p WHERE p.sid = ? AND p.aid = a.aid''', (song[0],))
+    for n in cursor.fetchall():
+        print(n[0])
+    cursor.execute('''SELECT * FROM songs WHERE sid = ?''', (song[0],))
 
-    for info in songInfo2:
-        print(info)
+    print("Playlists: ")
+    cursor.execute('''SELECT DISTINCT p.pid, p.title FROM playlists p, plinclude pl WHERE pl.sid = ? and pl.pid = p.pid''', (song[0],))
+    for n in cursor.fetchall():
+        print(n)
+
 
 
 def addToPlaylist(sessNo, userInput, user, connection, cursor):
     q = '''SELECT s.sid 
     FROM songs as s
     WHERE s.sid = ?'''
-    cursor.execute(q, userInput[1])  # TODO: error incorrect number of bindings supplied. current statment uses 1, and there are 6 supplied
+    cursor.execute(q, (userInput[1],))
     sid = cursor.fetchone()
     connection.commit()
     uInput = input(
@@ -641,8 +643,8 @@ def selectSong(sid, sessNo, sessionStarted, connection, cursor):
     # set up a while loop here
     if uInput == 'i':
 
-        # FIRST ARG IS SONG, RETRIEVE THE SONG FIRST
-        songInfo(sid, connection, cursor)
+        #FIRST ARG IS SONG, RETRIEVE THE SONG FIRST
+        songInfo(sid, cursor)
     elif uInput == 'L':
         '''a listening event is recorded within the current session of the user (if a session has already 
         started for the user) or within a new session (if not). When starting a new session, follow the 
@@ -708,7 +710,6 @@ def user(user, connection, cursor):
 
             # get the keywords into an array
             keyWords = userInput.split()
-            '''*** TO DO: get the rows, even if they're unordered that's okay we'll sort it in orderbyKW() *** '''
             # get all matching rows from keywords
             # any not all
 
@@ -807,14 +808,13 @@ def user(user, connection, cursor):
 
                 selectedArtist = utilities.paginate(items)
 
-                if selectedArtist is None:
+                if selectedArtist == None:
                     pass
                     # exit()
                 # todo do the quit, call checkQuit()?
                 else:
                     artist = items[selectedArtist]
-                    cursor.execute("""SELECT aid FROM artists WHERE name = ? AND nationality = ?""",
-                                   (artist[0], artist[1]))
+                    cursor.execute("""SELECT aid FROM artists WHERE name = ? AND nationality = ?""", (artist[0], artist[1]))
                     aid = str(cursor.fetchone()[0])
 
                     displayArtist(cursor, aid)
@@ -822,13 +822,14 @@ def user(user, connection, cursor):
                         "Enter song id to see more info, or press ENTER to exit")  # TODO: also use checkQuit() or are we returning to prev session?
                     sid = input("> ")
                     # checkQuit(sid)
+                    # todo why is this commented
                     if sid == None:
                         pass  # todo the quit thing, call checkQuit()?
                         # exit()
                     else:
                         while True:
                             cursor.execute('''SELECT * FROM songs WHERE sid = ?''', (sid,))
-                            if cursor.fetchone() is None:
+                            if cursor.fetchone() == None:
                                 print("Invalid input, please try again")
                                 sid = input("> ")
                             else:
@@ -873,6 +874,7 @@ def main():
     print("By Anya Hanatuke, Alinn Martinez, and Ayaan Jutt\n")
     # global path
     # TODO: we have no way of checking if they give us a valid database
+    # todo the TAs will not fuck us like that
     path = input("Please enter a database\n> ")
     path = './' + path
 
@@ -904,6 +906,9 @@ def main():
 
         while sessionDone == False and quitProgram == False:
 
+            #todo what is this
+            # why are we getting the values from the artist/user fxns only to manually set them to true
+            #pls explain thnk u
             if userTitle == 'artist':
                 sessionDone = artist(id, connection, cursor)
                 sessionDone = True
@@ -913,3 +918,7 @@ def main():
 
 
 main()
+
+#todo register hangs after registration, fix (registration successful just stop it from hanging)
+#todo login does a weird print, fix
+#todo if you try to logout as a user and then change your mind the program thinks you are an artist
