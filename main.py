@@ -473,7 +473,7 @@ def songInfo(song, connection, cursor):
         print(info)
 
 
-def addToPlaylist(sessNo, userInput, user, cursor, connection):
+def addToPlaylist(sessNo, userInput, user, connection, cursor):
     # todo: just pass the cursor, don't do this
 
     q = '''SELECT s.sid 
@@ -677,7 +677,7 @@ def selectSong(sid, sessNo, sessionStarted, cursor, connection):
         created with a unique id (created by your system) and the uid set to the id of the user and a 
         title should be obtained from input. '''
 
-        addToPlaylist(sessNo, sid, user, cursor, connection)
+        addToPlaylist(sessNo, sid, user, connection, cursor)
     else:
         print("Invalid input. Try again.")
     return
