@@ -378,7 +378,7 @@ def artist(artist):
     # artist is an aid of the user who logged in, used to check if a song exists or not
     connection, cursor = connect(path)
     print(
-        "Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter "  # TODO: change S to A
+        "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter "
         "'L' to logout.\nEnter 'E' to exit the program.")  # TODO: checkQuit()
     userInput = input("> ")
     userInput = userInput.lower().strip()
@@ -387,12 +387,12 @@ def artist(artist):
 
     while check == True:
 
-        if userInput != "s" and userInput != "f" and userInput != 'l' and userInput != 'e':
+        if userInput != "a" and userInput != "f" and userInput != 'l' and userInput != 'e':
 
             print("Invalid input. Please try again.")
             userInput = input("> ")
             userInput = userInput.lower().strip()
-        elif userInput == 's':  # TODO: change S to A
+        elif userInput == 'a':
             addSong(artist, cursor, connection)
         elif userInput == 'f':
             topListen(artist, cursor, connection)
@@ -403,7 +403,7 @@ def artist(artist):
                 return True
             elif userInput == 'n':
                 print(
-                    "Enter 'S' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.\nEnter 'E' to exit the program.")  # TODO: change S to A
+                    "Enter 'A' to add a song.\nEnter 'F' to find your top listeners and playlists with most of your songs.\nEnter 'L' to logout.\nEnter 'E' to exit the program.")
                 userInput = input("> ").lower().strip()  # TODO: checkQuit()
         elif userInput == 'e':
             endProg()
